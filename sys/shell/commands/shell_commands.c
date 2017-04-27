@@ -127,6 +127,11 @@ extern int _ccnl_open(int argc, char **argv);
 extern int _ccnl_content(int argc, char **argv);
 extern int _ccnl_interest(int argc, char **argv);
 extern int _ccnl_fib(int argc, char **argv);
+extern int _ccnl_remove_last_content(int argc, char **argv);
+extern int _ccnl_stats(int argc, char **argv);
+extern int _leds_on(int argc, char **argv);
+extern int _leds_off(int argc, char **argv);
+extern int _clean(int argc, char **argv);
 #endif
 
 #ifdef MODULE_SNTP
@@ -218,7 +223,12 @@ const shell_command_t _shell_command_list[] = {
     { "ccnl_open", "opens an interface or socket", _ccnl_open },
     { "ccnl_int", "sends an interest", _ccnl_interest },
     { "ccnl_cont", "create content and populated it", _ccnl_content },
+    { "ccnl_rem", "remove previously created content from cache", _ccnl_remove_last_content },
     { "ccnl_fib", "shows or modifies the CCN-Lite FIB", _ccnl_fib },
+    { "ccnl_stats", "shows conters for received ints and sent conts", _ccnl_stats },
+    { "leds_on", "not ccn sepcific. as name says: leds on", _leds_on },
+    { "leds_off", "not ccn sepcific. as name says: leds off", _leds_off },
+    { "clean", "frees some memory", _clean },
 #endif
 #ifdef MODULE_SNTP
     { "ntpdate", "synchronizes with a remote time server", _ntpdate },

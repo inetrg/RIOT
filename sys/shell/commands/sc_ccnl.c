@@ -23,15 +23,22 @@
 #include "net/gnrc/netif.h"
 #include "ccn-lite-riot.h"
 #include "ccnl-pkt-ndntlv.h"
+#include "board.h"
 
 #define BUF_SIZE (64)
 
 /**
  * Maximum number of Interest retransmissions
  */
-#define CCNL_INTEREST_RETRIES   (3)
+#define CCNL_INTEREST_RETRIES   (1)// peter: as i sse it, ccn handels retransmissions
 
 #define MAX_ADDR_LEN            (8U)
+
+int rx_counter=0;
+int snd_cont_counter=0;
+
+extern struct ccnl_relay_s ccnl_relay;
+extern struct ccnl_buf_s *bufCleanUpList;
 
 static unsigned char _int_buf[BUF_SIZE];
 static unsigned char _cont_buf[BUF_SIZE];
@@ -87,6 +94,20 @@ static void _content_usage(char *argv)
             argv, argv, argv);
 }
 
+/* Global so I can easily remember the last content to remove */
+struct ccnl_content_s *content_last = 0;
+
+int _ccnl_remove_last_content(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+    if (content_last != 0) {
+        ccnl_content_remove(&ccnl_relay, content_last);
+        return -1;
+    }
+    return 0;
+}
+
 int _ccnl_content(int argc, char **argv)
 {
     char *body = (char*) _default_content;
@@ -131,11 +152,10 @@ int _ccnl_content(int argc, char **argv)
         return -1;
     }
 
-    struct ccnl_content_s *c = 0;
     struct ccnl_pkt_s *pk = ccnl_ndntlv_bytes2pkt(typ, olddata, &data, &arg_len);
-    c = ccnl_content_new(&ccnl_relay, &pk);
-    ccnl_content_add2cache(&ccnl_relay, c);
-    c->flags |= CCNL_CONTENT_FLAGS_STATIC;
+    content_last = ccnl_content_new(&ccnl_relay, &pk);
+    ccnl_content_add2cache(&ccnl_relay, content_last);
+    content_last->flags |= CCNL_CONTENT_FLAGS_STATIC;
 
     return 0;
 }
@@ -221,7 +241,8 @@ int _ccnl_interest(int argc, char **argv)
         ccnl_send_interest(prefix, _int_buf, BUF_SIZE);
         if (ccnl_wait_for_chunk(_cont_buf, BUF_SIZE, 0) > 0) {
             gnrc_netreg_unregister(GNRC_NETTYPE_CCN_CHUNK, &_ne);
-            printf("Content received: %s\n", _cont_buf);
+            printf(" ccn_received %s\n", _cont_buf);
+            ccnl_free(prefix);
             return 0;
         }
         ccnl_free(prefix);
@@ -283,5 +304,76 @@ int _ccnl_fib(int argc, char **argv)
         _ccnl_fib_usage(argv[0]);
         return -1;
     }
+    return 0;
+}
+
+int _ccnl_stats(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+
+    printf(" rx_counter %i\n", rx_counter);
+    printf(" snd_cont_counter %i\n", snd_cont_counter);
+    return 0;
+}
+
+int _leds_on(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+
+    LED0_ON;
+    LED1_ON;
+    LED2_ON;
+
+    return 0;
+}
+
+int _leds_off(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+
+    LED0_OFF;
+    LED1_OFF;
+    LED2_OFF;
+
+    return 0;
+}
+
+int _clean(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+
+    struct ccnl_relay_s *ccnl = &ccnl_relay;
+
+    printf("ccnl_core_cleanup %p\n", (void *) ccnl);
+    while (ccnl->pit)
+        ccnl_interest_remove(ccnl, ccnl->pit);
+/*    while (ccnl->faces)
+        ccnl_face_remove(ccnl, ccnl->faces); // removes allmost all FWD entries
+    while (ccnl->fib) {
+        struct ccnl_forward_s *fwd = ccnl->fib->next;
+        free_prefix(ccnl->fib->prefix);
+        ccnl_free(ccnl->fib);
+        ccnl->fib = fwd;
+    }*/
+    while (ccnl->contents)
+        ccnl_content_remove(ccnl, ccnl->contents);
+    while (ccnl->nonces) {
+        struct ccnl_buf_s *tmp = ccnl->nonces->next;
+        ccnl_free(ccnl->nonces);
+        ccnl->nonces = tmp;
+    }
+/*    for (k = 0; k < ccnl->ifcount; k++)
+        ccnl_interface_cleanup(ccnl->ifs + k);
+*/
+    while (bufCleanUpList) {
+        struct ccnl_buf_s *tmp = bufCleanUpList->next;
+        ccnl_free(bufCleanUpList);
+        bufCleanUpList = tmp;
+    }
+
     return 0;
 }
