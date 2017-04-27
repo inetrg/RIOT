@@ -62,7 +62,7 @@ void auto_init_at86rf2xx(void)
             gnrc_netdev2_init(_at86rf2xx_stacks[i],
                               AT86RF2XX_MAC_STACKSIZE,
                               AT86RF2XX_MAC_PRIO,
-                              "at86rf2xx",
+                              "at86rf2xx_thread",
                               &gnrc_adpt[i]);
         }
     }
