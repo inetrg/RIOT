@@ -1,5 +1,5 @@
 PKG_NAME=ccn-lite
-PKG_URL=https://github.com/cn-uofbasel/ccn-lite/
+PKG_URL=https://github.com/PeterKietzmann/ccn-lite.git
 PKG_VERSION=10119ca8173457e8a26b28fc9f30fe0d97d17857
 PKG_LICENSE=ISC
 
@@ -7,7 +7,11 @@ PKG_LICENSE=ISC
 
 export RIOT_CFLAGS = ${CFLAGS} ${INCLUDES}
 
+ICN_MAC_CCNLITE_PATH := $(HOME)/ICN_MAC/ccn-lite
+
 all: git-download
+	rm -rf $(PKG_BUILDDIR) && mkdir -p $(PKG_BUILDDIR)
+	rsync -a $(ICN_MAC_CCNLITE_PATH) $(dir $(PKG_BUILDDIR)) --exclude .git
 	"$(MAKE)" -BC $(PKG_BUILDDIR)/src lib-ccn-lite.a
 	"$(MAKE)" -BC $(PKG_BUILDDIR)/src lib-ccn-lite-utils.a
 	cp $(PKG_BUILDDIR)/src/lib-ccn-lite.a ${BINDIR}/ccn-lite.a
