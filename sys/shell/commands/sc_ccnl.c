@@ -21,6 +21,7 @@
 #include "random.h"
 #include "sched.h"
 #include "net/gnrc/netif.h"
+#include "net/gnrc/pktdump.h"
 #include "ccn-lite-riot.h"
 #include "ccnl-pkt-ndntlv.h"
 #include "board.h"
@@ -30,7 +31,7 @@
 /**
  * Maximum number of Interest retransmissions
  */
-#define CCNL_INTEREST_RETRIES   (1)// peter: as i sse it, ccn handels retransmissions
+#define CCNL_INTEREST_RETRIES   (3)
 
 #define MAX_ADDR_LEN            (8U)
 
@@ -41,10 +42,12 @@ extern struct ccnl_relay_s ccnl_relay;
 extern struct ccnl_buf_s *bufCleanUpList;
 
 static unsigned char _int_buf[BUF_SIZE];
-static unsigned char _cont_buf[BUF_SIZE];
 
 static const char *_default_content = "Start the RIOT!";
 static unsigned char _out[CCNL_MAX_PACKET_SIZE];
+
+static gnrc_netreg_entry_t chunk_dump = GNRC_NETREG_ENTRY_INIT_PID(GNRC_NETREG_DEMUX_CTX_ALL,
+                                                               KERNEL_PID_UNDEF);
 
 /* usage for open command */
 static void _open_usage(void)
@@ -94,20 +97,6 @@ static void _content_usage(char *argv)
             argv, argv, argv);
 }
 
-/* Global so I can easily remember the last content to remove */
-struct ccnl_content_s *content_last = 0;
-
-int _ccnl_remove_last_content(int argc, char **argv)
-{
-    (void)argc;
-    (void)argv;
-    if (content_last != 0) {
-        ccnl_content_remove(&ccnl_relay, content_last);
-        return -1;
-    }
-    return 0;
-}
-
 int _ccnl_content(int argc, char **argv)
 {
     char *body = (char*) _default_content;
@@ -152,10 +141,11 @@ int _ccnl_content(int argc, char **argv)
         return -1;
     }
 
+    struct ccnl_content_s *c = 0;
     struct ccnl_pkt_s *pk = ccnl_ndntlv_bytes2pkt(typ, olddata, &data, &arg_len);
-    content_last = ccnl_content_new(&ccnl_relay, &pk);
-    ccnl_content_add2cache(&ccnl_relay, content_last);
-    content_last->flags |= CCNL_CONTENT_FLAGS_STATIC;
+    c = ccnl_content_new(&ccnl_relay, &pk);
+    ccnl_content_add2cache(&ccnl_relay, c);
+    c->flags |= CCNL_CONTENT_FLAGS_STATIC;
 
     return 0;
 }
@@ -229,28 +219,28 @@ int _ccnl_interest(int argc, char **argv)
     }
 
     memset(_int_buf, '\0', BUF_SIZE);
-    memset(_cont_buf, '\0', BUF_SIZE);
-    for (int cnt = 0; cnt < CCNL_INTEREST_RETRIES; cnt++) {
-        gnrc_netreg_entry_t _ne =
-            GNRC_NETREG_ENTRY_INIT_PID(GNRC_NETREG_DEMUX_CTX_ALL,
-                                       sched_active_pid);
-        /* register for content chunks */
-        gnrc_netreg_register(GNRC_NETTYPE_CCN_CHUNK, &_ne);
 
-        struct ccnl_prefix_s *prefix = ccnl_URItoPrefix(argv[1], CCNL_SUITE_NDNTLV, NULL, 0);
-        ccnl_send_interest(prefix, _int_buf, BUF_SIZE);
-        if (ccnl_wait_for_chunk(_cont_buf, BUF_SIZE, 0) > 0) {
-            gnrc_netreg_unregister(GNRC_NETTYPE_CCN_CHUNK, &_ne);
-            printf(" ccn_received %s\n", _cont_buf);
-            ccnl_free(prefix);
-            return 0;
-        }
-        ccnl_free(prefix);
-        gnrc_netreg_unregister(GNRC_NETTYPE_CCN_CHUNK, &_ne);
+    struct ccnl_prefix_s *prefix = ccnl_URItoPrefix(argv[1], CCNL_SUITE_NDNTLV, NULL, 0);
+    int res = ccnl_send_interest(prefix, _int_buf, BUF_SIZE);
+    free_prefix(prefix);
+
+    return res;
+}
+
+int _ccnl_start_chunk_dump(int argc, char **argv){
+    (void)argc;
+    (void)argv;
+
+    /* check if chunk_dump is already running */
+    if (chunk_dump.target.pid != KERNEL_PID_UNDEF) {
+        puts("Error: chunk_dump already running");
+        return -1;
     }
-    printf("Timeout! No content received in response to the Interest for %s.\n", argv[1]);
 
-    return -1;
+    /* start pktdump */
+    chunk_dump.target.pid = gnrc_pktdump_pid;
+    gnrc_netreg_register(GNRC_NETTYPE_CCN_CHUNK, &chunk_dump);
+    return 0;
 }
 
 static void _ccnl_fib_usage(char *argv)
@@ -351,14 +341,6 @@ int _clean(int argc, char **argv)
     printf("ccnl_core_cleanup %p\n", (void *) ccnl);
     while (ccnl->pit)
         ccnl_interest_remove(ccnl, ccnl->pit);
-/*    while (ccnl->faces)
-        ccnl_face_remove(ccnl, ccnl->faces); // removes allmost all FWD entries
-    while (ccnl->fib) {
-        struct ccnl_forward_s *fwd = ccnl->fib->next;
-        free_prefix(ccnl->fib->prefix);
-        ccnl_free(ccnl->fib);
-        ccnl->fib = fwd;
-    }*/
     while (ccnl->contents)
         ccnl_content_remove(ccnl, ccnl->contents);
     while (ccnl->nonces) {
@@ -366,9 +348,6 @@ int _clean(int argc, char **argv)
         ccnl_free(ccnl->nonces);
         ccnl->nonces = tmp;
     }
-/*    for (k = 0; k < ccnl->ifcount; k++)
-        ccnl_interface_cleanup(ccnl->ifs + k);
-*/
     while (bufCleanUpList) {
         struct ccnl_buf_s *tmp = bufCleanUpList->next;
         ccnl_free(bufCleanUpList);
