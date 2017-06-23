@@ -126,8 +126,8 @@ extern int _gnrc_6ctx(int argc, char **argv);
 extern int _ccnl_open(int argc, char **argv);
 extern int _ccnl_content(int argc, char **argv);
 extern int _ccnl_interest(int argc, char **argv);
+extern int _ccnl_start_chunk_dump(int argc, char **argv);
 extern int _ccnl_fib(int argc, char **argv);
-extern int _ccnl_remove_last_content(int argc, char **argv);
 extern int _ccnl_stats(int argc, char **argv);
 extern int _leds_on(int argc, char **argv);
 extern int _leds_off(int argc, char **argv);
@@ -222,8 +222,8 @@ const shell_command_t _shell_command_list[] = {
 #ifdef MODULE_CCN_LITE_UTILS
     { "ccnl_open", "opens an interface or socket", _ccnl_open },
     { "ccnl_int", "sends an interest", _ccnl_interest },
+    { "ccnl_dump", "starts a thread that prints received content chunks", _ccnl_start_chunk_dump },
     { "ccnl_cont", "create content and populated it", _ccnl_content },
-    { "ccnl_rem", "remove previously created content from cache", _ccnl_remove_last_content },
     { "ccnl_fib", "shows or modifies the CCN-Lite FIB", _ccnl_fib },
     { "ccnl_stats", "shows conters for received ints and sent conts", _ccnl_stats },
     { "leds_on", "not ccn sepcific. as name says: leds on", _leds_on },
