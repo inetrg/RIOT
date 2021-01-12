@@ -21,4 +21,6 @@ ifeq (1,$(EFM32_LEUART_ENABLED))
   CFLAGS += -DEFM32_LEUART_ENABLED=1
 endif
 
+KCONFIG_ADD_CONFIG += $(RIOTCPU)/efm32/cpu.config
+
 include $(RIOTCPU)/cortexm_common/Makefile.features

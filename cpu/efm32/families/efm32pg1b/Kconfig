@@ -8,6 +8,10 @@ config CPU_FAM_EFM32PG1B
     bool
     select CPU_CORE_CORTEX_M4F
     select CPU_COMMON_EFM32
+    select HAS_PERIPH_CRYPTO_AES
+    select HAS_HW_HASH_SHA1
+    select HAS_HW_HASH_SHA256
+    select MOD_CPU_EFM32PG1B
 
 ## CPU Models
 config CPU_MODEL_EFM32PG1B200F256GM48
@@ -70,3 +74,7 @@ config CPU_MODEL
     default "efm32pg1b200f256im48" if CPU_MODEL_EFM32PG1B200F256IM48
     default "efm32pg1b200f256gm32" if CPU_MODEL_EFM32PG1B200F256GM32
     default "efm32pg1b100f128gm32" if CPU_MODEL_EFM32PG1B100F128GM32
+
+config MOD_CPU_EFM32PG1B
+    bool
+    depends on CPU_FAM_EFM32PG1B

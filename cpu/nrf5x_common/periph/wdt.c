@@ -23,7 +23,7 @@
 #include "timex.h"
 #include "periph/wdt.h"
 
-#include "nrf_clock.h"
+#include "nrf_clock_riot.h"
 
 #define ENABLE_DEBUG (0)
 #include "debug.h"

@@ -54,4 +54,12 @@ config HAS_BLE_NORDIC_SOFTDEVICE
         Indicates that Nordic SoftDevice support in RIOT has been verified on the
         current platform.
 
+config MOD_CPU_COMMON
+    bool
+    default y
+    depends on CPU_COMMON_NRF5X
+    depends on TEST_KCONFIG
+
+rsource "periph/Kconfig"
+
 source "$(RIOTCPU)/cortexm_common/Kconfig"

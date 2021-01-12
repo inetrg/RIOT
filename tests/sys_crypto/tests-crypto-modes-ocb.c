@@ -271,7 +271,7 @@ static void test_encrypt_op(uint8_t *key, uint8_t key_len,
                             size_t output_expected_len,
                             uint8_t tag_length)
 {
-    cipher_t cipher;
+    cipher_context_t cipher;
     int len, err, cmp;
 
     TEST_ASSERT_MESSAGE(sizeof(data) >= output_expected_len,
@@ -280,7 +280,7 @@ static void test_encrypt_op(uint8_t *key, uint8_t key_len,
     err = cipher_init(&cipher, CIPHER_AES_128, key, key_len);
     TEST_ASSERT_EQUAL_INT(1, err);
 
-    len = cipher_encrypt_ocb(&cipher, adata, adata_len,
+    len = cipher_encrypt_ocb(&cipher, CIPHER_AES_128, adata, adata_len,
                              tag_length, nonce, nonce_len,
                              plain, plain_len, data);
     TEST_ASSERT_MESSAGE(len > 0, "Encryption failed");
@@ -321,7 +321,7 @@ static void test_decrypt_op(uint8_t *key, uint8_t key_len,
                             size_t output_expected_len,
                             uint8_t tag_length)
 {
-    cipher_t cipher;
+    cipher_context_t cipher;
     int len, err, cmp;
 
     TEST_ASSERT_MESSAGE(sizeof(data) >= output_expected_len,
@@ -330,7 +330,7 @@ static void test_decrypt_op(uint8_t *key, uint8_t key_len,
     err = cipher_init(&cipher, CIPHER_AES_128, key, key_len);
     TEST_ASSERT_EQUAL_INT(1, err);
 
-    len = cipher_decrypt_ocb(&cipher, adata, adata_len,
+    len = cipher_decrypt_ocb(&cipher, CIPHER_AES_128, adata, adata_len,
                              tag_length, nonce, nonce_len,
                              encrypted, encrypted_len, data);
     TEST_ASSERT_MESSAGE(len >= 0, "Decryption failed");
@@ -342,40 +342,40 @@ static void test_decrypt_op(uint8_t *key, uint8_t key_len,
     /* do some negative tests for the tag verification */
     if (adata_len > 0) {
         /* Drop one byte of auth data */
-        len = cipher_decrypt_ocb(&cipher, adata, adata_len - 1,
+        len = cipher_decrypt_ocb(&cipher, CIPHER_AES_128, adata, adata_len - 1,
                                  tag_length, nonce, nonce_len,
                                  encrypted, encrypted_len, data);
         TEST_ASSERT_EQUAL_INT(OCB_ERR_INVALID_TAG, len);
         /* Alter one byte of auth data */
         adata[0] = adata[0] ^ 0x01;
-        len = cipher_decrypt_ocb(&cipher, adata, adata_len,
+        len = cipher_decrypt_ocb(&cipher, CIPHER_AES_128, adata, adata_len,
                                  tag_length, nonce, nonce_len,
                                  encrypted, encrypted_len, data);
         TEST_ASSERT_EQUAL_INT(OCB_ERR_INVALID_TAG, len);
         adata[0] = adata[0] ^ 0x01;
     }
     /* Drop one byte of the nonce */
-    len = cipher_decrypt_ocb(&cipher, adata, adata_len,
+    len = cipher_decrypt_ocb(&cipher, CIPHER_AES_128, adata, adata_len,
                              tag_length, nonce, nonce_len - 1,
                              encrypted, encrypted_len, data);
     TEST_ASSERT_EQUAL_INT(OCB_ERR_INVALID_TAG, len);
     /* Alter one byte of the nonce */
     nonce[0] = nonce[0] ^ 0x01;
-    len = cipher_decrypt_ocb(&cipher, adata, adata_len,
+    len = cipher_decrypt_ocb(&cipher, CIPHER_AES_128, adata, adata_len,
                              tag_length, nonce, nonce_len,
                              encrypted, encrypted_len, data);
     TEST_ASSERT_EQUAL_INT(OCB_ERR_INVALID_TAG, len);
     nonce[0] = nonce[0] ^ 0x01;
     /* Alter one byte of the ciphertext */
     encrypted[0] = encrypted[0] ^ 0x01;
-    len = cipher_decrypt_ocb(&cipher, adata, adata_len,
+    len = cipher_decrypt_ocb(&cipher, CIPHER_AES_128, adata, adata_len,
                              tag_length, nonce, nonce_len,
                              encrypted, encrypted_len, data);
     TEST_ASSERT_EQUAL_INT(OCB_ERR_INVALID_TAG, len);
     encrypted[0] = encrypted[0] ^ 0x01;
     /* Alter one byte of the tag */
     encrypted[encrypted_len - 1] = encrypted[encrypted_len - 1] ^ 0x01;
-    len = cipher_decrypt_ocb(&cipher, adata, adata_len,
+    len = cipher_decrypt_ocb(&cipher, CIPHER_AES_128, adata, adata_len,
                              tag_length, nonce, nonce_len,
                              encrypted, encrypted_len, data);
     TEST_ASSERT_EQUAL_INT(OCB_ERR_INVALID_TAG, len);
@@ -410,23 +410,23 @@ static void test_crypto_modes_ocb_decrypt(void)
 static void test_crypto_modes_ocb_bad_parameter_values(void)
 {
     uint8_t key[16], auth_data[1], nonce[16], input[16], output[32];
-    cipher_t cipher;
+    cipher_context_t cipher;
 
     cipher_init(&cipher, CIPHER_AES_128, key, 16);
     /* tag length must be positive */
-    int rv = cipher_encrypt_ocb(&cipher, auth_data, sizeof(auth_data), 0, nonce,
+    int rv = cipher_encrypt_ocb(&cipher, CIPHER_AES_128, auth_data, sizeof(auth_data), 0, nonce,
                                 15, input, sizeof(input), output);
     TEST_ASSERT_EQUAL_INT(OCB_ERR_INVALID_TAG_LENGTH, rv);
     /* tag length must be <= 16 */
-    rv = cipher_encrypt_ocb(&cipher, auth_data, sizeof(auth_data), 17, nonce,
+    rv = cipher_encrypt_ocb(&cipher, CIPHER_AES_128, auth_data, sizeof(auth_data), 17, nonce,
                             15, input, sizeof(input), output);
     TEST_ASSERT_EQUAL_INT(OCB_ERR_INVALID_TAG_LENGTH, rv);
     /* nonce must not be empty */
-    rv = cipher_encrypt_ocb(&cipher, auth_data, sizeof(auth_data), 16, nonce, 0,
+    rv = cipher_encrypt_ocb(&cipher, CIPHER_AES_128, auth_data, sizeof(auth_data), 16, nonce, 0,
                             input, sizeof(input), output);
     TEST_ASSERT_EQUAL_INT(OCB_ERR_INVALID_NONCE_LENGTH, rv);
     /* nonce must be <=15 */
-    rv = cipher_encrypt_ocb(&cipher, auth_data, sizeof(auth_data), 16, nonce,
+    rv = cipher_encrypt_ocb(&cipher, CIPHER_AES_128, auth_data, sizeof(auth_data), 16, nonce,
                             16, input, sizeof(input), output);
     TEST_ASSERT_EQUAL_INT(OCB_ERR_INVALID_NONCE_LENGTH, rv);
 }

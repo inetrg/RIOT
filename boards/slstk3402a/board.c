@@ -28,6 +28,7 @@ void board_init(void)
     /* initialize the CPU */
     cpu_init();
 
+#ifndef TEST_ENERGY
 #ifndef RIOTBOOT
     /* perform common board initialization */
     board_common_init();
@@ -37,5 +38,7 @@ void board_init(void)
     gpio_init(SI7021_EN_PIN, GPIO_OUT);
     gpio_set(SI7021_EN_PIN);
 #endif
+#endif /* TEST_ENERGY */
+
 #endif
 }

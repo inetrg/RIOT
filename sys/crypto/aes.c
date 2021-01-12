@@ -39,7 +39,13 @@
 #include <stdint.h>
 #include "crypto/aes.h"
 #include "crypto/ciphers.h"
+#include "crypto/modes/cbc.h"
 
+#include "periph/gpio.h"
+
+#if TEST_AES_KEY
+#include "crypto_runtime.h"
+#endif
 /**
  * Interface to the aes cipher
  */
@@ -795,6 +801,9 @@ static const u32 rcon[] = {
     0x1B000000, 0x36000000,
 };
 
+#ifdef AES_TIME
+uint32_t sta, sto, diff;
+#endif
 
 int aes_init(cipher_context_t *context, const uint8_t *key, uint8_t keySize)
 {
@@ -1036,8 +1045,15 @@ int aes_encrypt(const cipher_context_t *context, const uint8_t *plainBlock,
     AES_KEY aeskey;
     const AES_KEY *key = &aeskey;
 
+#if TEST_AES_KEY
+    gpio_set(gpio_aes_key);
+#endif
     res = aes_set_encrypt_key((unsigned char *)context->context,
                               AES_KEY_SIZE * 8, &aeskey);
+#if TEST_AES_KEY
+    gpio_clear(gpio_aes_key);
+#endif
+
     if (res < 0) {
         return res;
     }
@@ -1304,8 +1320,14 @@ int aes_decrypt(const cipher_context_t *context, const uint8_t *cipherBlock,
     AES_KEY aeskey;
     const AES_KEY *key = &aeskey;
 
+#if TEST_AES_KEY
+    gpio_set(gpio_aes_key);
+#endif
     res = aes_set_decrypt_key((unsigned char *)context->context,
                               AES_KEY_SIZE * 8, &aeskey);
+#if TEST_AES_KEY
+    gpio_clear(gpio_aes_key);
+#endif
 
     if (res < 0) {
         return res;

@@ -370,7 +370,9 @@ include $(RIOTMAKE)/kconfig.mk
 ifeq (1,$(TEST_KCONFIG))
   $(info === [ATTENTION] Testing Kconfig dependency modelling ===)
   KCONFIG_MODULES := $(call lowercase,$(patsubst CONFIG_MOD_%,%,$(filter CONFIG_MOD_%,$(.VARIABLES))))
+  KCONFIG_PKGS := $(call lowercase,$(patsubst CONFIG_PACK_%,%,$(filter CONFIG_PACK_%,$(.VARIABLES))))
   USEMODULE := $(KCONFIG_MODULES)
+  USEPKG := $(KCONFIG_PKGS)
 else
   # handle removal of default modules
   USEMODULE += $(filter-out $(DISABLE_MODULE), $(DEFAULT_MODULE))

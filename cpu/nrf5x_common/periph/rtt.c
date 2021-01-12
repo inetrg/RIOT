@@ -22,7 +22,7 @@
  */
 
 #include "cpu.h"
-#include "nrf_clock.h"
+#include "nrf_clock_riot.h"
 #include "periph/rtt.h"
 
 /* get the IRQ configuration */

@@ -1,0 +1,91 @@
+# Copyright (c) 2020 HAW Hamburg
+#
+# This file is subject to the terms and conditions of the GNU Lesser
+# General Public License v2.1. See the file LICENSE in the top level
+# directory for more details.
+#
+
+config PACK_CRYPTOAUTHLIB
+    bool "Microchip CryptoAuth library"
+    select MOD_CRYPTOAUTHLIB_CONTRIB
+    depends on HAS_PERIPH_I2C
+    select MOD_PERIPH_I2C
+    select MOD_XTIMER
+    imply MOD_PERIPH_I2C_RECONFIGURE
+
+choice CRYPTO_AES_IMPLEMENTATION
+    default MOD_CRYPTOAUTHLIB_CRYPTO_AES
+
+config MOD_CRYPTOAUTHLIB_CRYPTO_AES
+    bool "Microchip CryptoAuth library"
+    depends on PACK_CRYPTOAUTHLIB
+    select MOD_CRYPTOAUTHLIB_CRYPTO
+
+endchoice
+
+
+choice CRYPTO_MODE_AES_CTR_IMPLEMENTATION
+    default MOD_CRYPTOAUTHLIB_CRYPTO_AES_CTR
+config MOD_CRYPTOAUTHLIB_CRYPTO_AES_CTR
+    bool "Microchip CryptoAuth library"
+    depends on PACK_CRYPTOAUTHLIB
+    select MOD_CRYPTOAUTHLIB_CRYPTO
+
+endchoice
+
+
+choice CRYPTO_MODE_AES_CBC_IMPLEMENTATION
+    default MOD_CRYPTOAUTHLIB_CRYPTO_AES_CBC
+
+config MOD_CRYPTOAUTHLIB_CRYPTO_AES_CBC
+    bool "Microchip CryptoAuth library"
+    depends on PACK_CRYPTOAUTHLIB
+    select MOD_CRYPTOAUTHLIB_CRYPTO
+
+endchoice
+
+
+choice CRYPTO_MODE_AES_ECB_IMPLEMENTATION
+
+config MOD_CRYPTOAUTHLIB_CRYPTO_AES_ECB
+    bool "Microchip CryptoAuth library"
+    depends on PACK_CRYPTOAUTHLIB
+    select MOD_CRYPTOAUTHLIB_CRYPTO
+
+endchoice
+
+choice HASHES_SHA1_IMPLEMENTATION
+    default MOD_CRYPTOAUTHLIB_HASHES_SHA1
+
+config MOD_CRYPTOAUTHLIB_HASHES_SHA1
+    bool "Microchip CryptoAuth library"
+    depends on PACK_CRYPTOAUTHLIB
+    select MOD_CRYPTOAUTHLIB_HASHES
+    select HAVE_OWN_SHA1_CTX
+
+endchoice
+
+choice HASHES_SHA256_IMPLEMENTATION
+    default MOD_CRYPTOAUTHLIB_HASHES_SHA256
+
+config MOD_CRYPTOAUTHLIB_HASHES_SHA256
+    bool "Microchip CryptoAuth library"
+    depends on PACK_CRYPTOAUTHLIB
+    select MOD_CRYPTOAUTHLIB_HASHES
+    select HAVE_OWN_SHA256_CTX
+    select HAVE_OWN_HMAC_CTX
+
+endchoice
+
+config MOD_CRYPTOAUTHLIB_CRYPTO
+    bool
+    select HAVE_OWN_CIPHER_CONTEXT_T
+    help
+        Basic module containing crypto implementations using CryptoAuth.
+
+config MOD_CRYPTOAUTHLIB_HASHES
+    bool
+    help
+        Basic module containing hash implementations using CryptoAuth.
+
+rsource "contrib/Kconfig"

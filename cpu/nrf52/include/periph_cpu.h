@@ -137,6 +137,9 @@ typedef struct {
 #define PERIPH_I2C_NEED_WRITE_REG
 /** @} */
 
+#define i2c_pin_sda(dev) i2c_config[dev].sda
+#define i2c_pin_scl(dev) i2c_config[dev].scl
+
 /**
  * @name    The PWM unit on the nRF52 supports 4 channels per device
  */

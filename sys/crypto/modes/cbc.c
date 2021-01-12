@@ -22,14 +22,14 @@
 #include <string.h>
 #include "crypto/modes/cbc.h"
 
-int cipher_encrypt_cbc(cipher_t *cipher, uint8_t iv[16],
+int cipher_encrypt_cbc(cipher_context_t *context, cipher_id_t cipher_id, uint8_t iv[16],
                        const uint8_t *input, size_t length, uint8_t *output)
 {
     size_t offset = 0;
     uint8_t block_size, input_block[CIPHER_MAX_BLOCK_SIZE] = { 0 },
             *output_block_last;
 
-    block_size = cipher_get_block_size(cipher);
+    block_size = cipher_get_block_size(cipher_id);
     if (length % block_size != 0) {
         return CIPHER_ERR_INVALID_LENGTH;
     }
@@ -42,7 +42,7 @@ int cipher_encrypt_cbc(cipher_t *cipher, uint8_t iv[16],
             input_block[i] ^= output_block_last[i];
         }
 
-        if (cipher_encrypt(cipher, input_block, output + offset) != 1) {
+        if (cipher_encrypt(context, cipher_id, input_block, output + offset) != 1) {
             return CIPHER_ERR_ENC_FAILED;
         }
 
@@ -54,7 +54,7 @@ int cipher_encrypt_cbc(cipher_t *cipher, uint8_t iv[16],
 }
 
 
-int cipher_decrypt_cbc(cipher_t *cipher, uint8_t iv[16],
+int cipher_decrypt_cbc(cipher_context_t *context, cipher_id_t cipher_id, uint8_t iv[16],
                        const uint8_t *input, size_t length, uint8_t *output)
 {
     size_t offset = 0;
@@ -62,7 +62,7 @@ int cipher_decrypt_cbc(cipher_t *cipher, uint8_t iv[16],
     uint8_t block_size;
 
 
-    block_size = cipher_get_block_size(cipher);
+    block_size = cipher_get_block_size(cipher_id);
     if (length % block_size != 0) {
         return CIPHER_ERR_INVALID_LENGTH;
     }
@@ -72,7 +72,7 @@ int cipher_decrypt_cbc(cipher_t *cipher, uint8_t iv[16],
         input_block = input + offset;
         uint8_t *output_block = output + offset;
 
-        if (cipher_decrypt(cipher, input_block, output_block) != 1) {
+        if (cipher_decrypt(context, cipher_id, input_block, output_block) != 1) {
             return CIPHER_ERR_DEC_FAILED;
         }
 

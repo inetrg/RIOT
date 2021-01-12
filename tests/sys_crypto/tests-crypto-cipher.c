@@ -30,14 +30,14 @@ static uint8_t TEST_ENC_AES[] = {
 
 static void test_crypto_cipher_aes_encrypt(void)
 {
-    cipher_t cipher;
+    cipher_context_t cipher;
     int err, cmp;
     uint8_t data[16] = { 0 };
 
     err = cipher_init(&cipher, CIPHER_AES_128, TEST_KEY, 16);
     TEST_ASSERT_EQUAL_INT(1, err);
 
-    err = cipher_encrypt(&cipher, TEST_INP, data);
+    err = cipher_encrypt(&cipher, CIPHER_AES_128, TEST_INP, data);
     TEST_ASSERT_EQUAL_INT(1, err);
 
     cmp = compare(TEST_ENC_AES, data, 16);
@@ -46,14 +46,14 @@ static void test_crypto_cipher_aes_encrypt(void)
 
 static void test_crypto_cipher_aes_decrypt(void)
 {
-    cipher_t cipher;
+    cipher_context_t cipher;
     int err, cmp;
     uint8_t data[16];
 
     err = cipher_init(&cipher, CIPHER_AES_128, TEST_KEY, 16);
     TEST_ASSERT_EQUAL_INT(1, err);
 
-    err = cipher_decrypt(&cipher, TEST_ENC_AES, data);
+    err = cipher_decrypt(&cipher, CIPHER_AES_128, TEST_ENC_AES, data);
     TEST_ASSERT_EQUAL_INT(1, err);
 
     cmp = compare(TEST_INP, data, 16);
@@ -62,7 +62,7 @@ static void test_crypto_cipher_aes_decrypt(void)
 
 static void test_crypto_cipher_init_aes_key_length(void)
 {
-    cipher_t cipher;
+    cipher_context_t cipher;
     int err;
 
     /* A keylength of 192 bit is not supported by the current implementation */

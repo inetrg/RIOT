@@ -434,6 +434,68 @@ void test_speed(uint32_t duration)
     printf("Collected %s samples in %s seconds (%s KiB/s).\n", tmp1, tmp3, tmp2);
 }
 
+
+static inline uint32_t test_get_bytes(uint32_t num_bytes)
+{
+    uint8_t buf[1024];
+
+    if (source == RNG_PRNG) {
+        random_bytes(buf, num_bytes);
+        return 1;
+    }
+#ifdef MODULE_PERIPH_HWRNG
+    else if (source == RNG_HWRNG) {
+        hwrng_read(buf, num_bytes);
+        return 1;
+    }
+#endif
+
+    else if (source == RNG_CONSTANT) {
+        /* use the seed as the constant value */
+        return 0;
+    }
+
+    return 0;
+}
+
+
+void test_speed2(uint32_t duration, uint32_t num_bytes)
+{
+    char tmp1[16] = { 0 }, tmp2[16] = { 0 }, tmp3[16] = { 0 }, tmp4[16] = { 0 };
+
+    uint64_t samples = 0;
+
+    /* initialize test */
+    test_init("speed");
+    printf("Running speed2 test for %" PRIu32 " seconds and %" PRIu32 " byte blocks\n", duration, num_bytes);
+
+    /* collect samples as long as timer has not expired */
+    unsigned running = 1;
+    xtimer_t xt = {
+        .start_time = 0,
+        .long_start_time = 0,
+        .offset = 0,
+        .long_offset = 0,
+        .callback = cb_speed_timeout,
+        .arg = &running,
+    };
+    uint32_t start_usec = xtimer_now_usec();
+    xtimer_set(&xt, duration * US_PER_SEC);
+    while (running) {
+        test_get_bytes(num_bytes);
+        samples++;
+    }
+    uint32_t actual_duration_usec = xtimer_now_usec() - start_usec;
+
+
+    /* print results */
+    fmt_u64_dec(tmp1, samples);
+    fmt_u64_dec(tmp2, samples*num_bytes);
+    fmt_u64_dec(tmp3, (samples * num_bytes * 1000000 / 1024) / actual_duration_usec);
+    fmt_s32_dfp(tmp4, actual_duration_usec, -6);
+    printf("Collected %s samples, %s bytes,  in %s seconds (%s KiB/s).\n", tmp1, tmp2, tmp4, tmp3);
+}
+
 void test_speed_range(uint32_t duration, uint32_t low_thresh, uint32_t high_thresh)
 {
     char tmp1[16] = { 0 }, tmp2[16] = { 0 }, tmp3[16] = { 0 };

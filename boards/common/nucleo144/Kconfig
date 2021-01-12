@@ -8,3 +8,11 @@
 config BOARD_COMMON_NUCLEO144
     bool
     select HAS_ARDUINO
+    select BOARD_COMMON_NUCLEO
+
+config MOD_NUCLEO144_COMMON
+    default y
+    depends on BOARD_COMMON_NUCLEO144
+    depends on TEST_KCONFIG
+
+source "$(RIOTBOARD)/common/nucleo/Kconfig"

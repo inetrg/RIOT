@@ -16,4 +16,7 @@ DIRS += $(RIOTBASE)/core $(RIOTBASE)/drivers $(RIOTBASE)/sys
 # Makefile as APPLICATION_BLOBS.
 BLOBS = $(APPLICATION_BLOBS)
 
+# include application-specific makefile if present
+-include $(APPDIR)/Makefile.app
+
 include $(RIOTBASE)/Makefile.base

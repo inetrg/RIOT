@@ -15,6 +15,13 @@ config CPU_FAM_NRF52
     select HAS_BLE_NIMBLE_NETIF
     select HAS_CORTEXM_MPU
     select HAS_CPU_NRF52
+    select HAS_PERIPH_CRYPTO_AES
+    select HAS_PERIPH_CRYPTO_AES_ECB
+    select HAS_PERIPH_CRYPTO_AES_CTR
+    select HAS_PERIPH_CRYPTO_AES_CBC
+    select HAS_HW_HASH_SHA1
+    select HAS_HW_HASH_SHA256
+    select HAS_PERIPH_I2C_RECONFIGURE
 
 ## CPU Models
 config CPU_MODEL_NRF52832XXAA
@@ -42,5 +49,33 @@ config HAS_CPU_NRF52
     bool
     help
         Indicates that the current cpu is 'nrf52'.
+
+## The crypto implementations define their own structure
+config MOD_PERIPH_CRYPTO_AES
+    depends on HAS_CPU_NRF52
+    select HAVE_OWN_CIPHER_CONTEXT_T
+
+config MOD_PERIPH_CRYPTO_AES_CBC
+    depends on HAS_CPU_NRF52
+    select HAVE_OWN_CIPHER_CONTEXT_T
+
+config MOD_PERIPH_CRYPTO_AES_CTR
+    depends on HAS_CPU_NRF52
+    select HAVE_OWN_CIPHER_CONTEXT_T
+
+config MOD_PERIPH_CRYPTO_AES_ECB
+    depends on HAS_CPU_NRF52
+    select HAVE_OWN_CIPHER_CONTEXT_T
+
+config MOD_PERIPH_HASH_SHA1
+    depends on HAS_CPU_NRF52
+    select HAVE_OWN_SHA1_CTX
+
+config MOD_PERIPH_HASH_SHA256
+    depends on HAS_CPU_NRF52
+    select HAVE_OWN_SHA256_CTX
+    select HAVE_OWN_HMAC_CTX
+
+rsource "cryptocell_lib/Kconfig"
 
 source "$(RIOTCPU)/nrf5x_common/Kconfig"

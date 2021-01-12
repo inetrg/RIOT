@@ -12,14 +12,14 @@
 int main(void)
 {
     TESTS_START();
-    TESTS_RUN(tests_crypto_helper_tests());
-    TESTS_RUN(tests_crypto_chacha_tests());
-    TESTS_RUN(tests_crypto_poly1305_tests());
-    TESTS_RUN(tests_crypto_chacha20poly1305_tests());
-    TESTS_RUN(tests_crypto_aes_tests());
-    TESTS_RUN(tests_crypto_cipher_tests());
-    TESTS_RUN(tests_crypto_modes_ccm_tests());
-    TESTS_RUN(tests_crypto_modes_ocb_tests());
+    // TESTS_RUN(tests_crypto_helper_tests());
+    // TESTS_RUN(tests_crypto_chacha_tests());
+    // TESTS_RUN(tests_crypto_poly1305_tests());
+    // TESTS_RUN(tests_crypto_chacha20poly1305_tests());
+    // TESTS_RUN(tests_crypto_aes_tests());
+    // TESTS_RUN(tests_crypto_cipher_tests());
+    // TESTS_RUN(tests_crypto_modes_ccm_tests());
+    // TESTS_RUN(tests_crypto_modes_ocb_tests());
     TESTS_RUN(tests_crypto_modes_ecb_tests());
     TESTS_RUN(tests_crypto_modes_cbc_tests());
     TESTS_RUN(tests_crypto_modes_ctr_tests());

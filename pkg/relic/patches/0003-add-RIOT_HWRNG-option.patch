@@ -1,0 +1,45 @@
+From 0ff046daf5af50e413b8cd40b12e414328f9f0d1 Mon Sep 17 00:00:00 2001
+From: Einhornhool <26007369+Einhornhool@users.noreply.github.com>
+Date: Wed, 30 Sep 2020 23:14:01 +0300
+Subject: [PATCH] relic_rand_hash: use RIOT HWRNG instead of relic rand hash
+
+---
+ src/rand/relic_rand_hash.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/rand/relic_rand_hash.c b/src/rand/relic_rand_hash.c
+index 42c2bd91..fbda69ae 100644
+--- a/src/rand/relic_rand_hash.c
++++ b/src/rand/relic_rand_hash.c
+@@ -38,6 +38,8 @@
+ #include "relic_md.h"
+ #include "relic_err.h"
+ 
++void hwrng_read(void *buf, unsigned int num);
++
+ /*============================================================================*/
+ /* Private definitions                                                        */
+ /*============================================================================*/
+@@ -142,6 +144,11 @@ static void rand_gen(uint8_t *out, int out_len) {
+ 
+ #if RAND == HASH
+ 
++#ifdef RIOT_HWRNG
++void rand_bytes(uint8_t *buf, int size) {
++    hwrng_read(buf, size);
++}
++#else
+ void rand_bytes(uint8_t *buf, int size) {
+ 	uint8_t hash[MD_LEN];
+ 	int carry, len  = (RAND_SIZE - 1)/2;
+@@ -163,6 +170,7 @@ void rand_bytes(uint8_t *buf, int size) {
+ 	rand_inc(ctx->rand, len + 1, ctx->counter);
+ 	ctx->counter = ctx->counter + 1;
+ }
++#endif
+ 
+ void rand_seed(uint8_t *buf, int size) {
+ 	ctx_t *ctx = core_get();
+-- 
+2.17.1
+

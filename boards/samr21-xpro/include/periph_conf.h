@@ -271,7 +271,7 @@ static const spi_conf_t spi_config[] = {
 static const i2c_conf_t i2c_config[] = {
     {
         .dev      = &(SERCOM3->I2CM),
-        .speed    = I2C_SPEED_NORMAL,
+        .speed    = I2C_SPEED_FAST,
         .scl_pin  = GPIO_PIN(PA, 17),
         .sda_pin  = GPIO_PIN(PA, 16),
         .mux      = GPIO_MUX_D,

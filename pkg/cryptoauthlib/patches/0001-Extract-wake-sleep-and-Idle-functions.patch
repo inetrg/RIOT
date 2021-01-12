@@ -1,0 +1,74 @@
+From bd2dd82560a8a7ec7469a116739bbfdfe53e0342 Mon Sep 17 00:00:00 2001
+From: Einhornhool <26007369+Einhornhool@users.noreply.github.com>
+Date: Fri, 18 Sep 2020 17:54:59 +0300
+Subject: [PATCH] Extract wake, sleep and Idle functions
+
+---
+ lib/atca_execution.c        |  5 ++++-
+ lib/basic/atca_basic_read.c | 11 +++++++++++
+ 2 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/lib/atca_execution.c b/lib/atca_execution.c
+index d3ad6f69..e8485f94 100644
+--- a/lib/atca_execution.c
++++ b/lib/atca_execution.c
+@@ -304,11 +304,12 @@ ATCA_STATUS atca_execute_command(ATCAPacket* packet, ATCADevice device)
+         max_delay_count = ATCA_POLLING_MAX_TIME_MSEC / ATCA_POLLING_FREQUENCY_TIME_MSEC;
+ #endif
+ 
++#ifndef ATCA_MANUAL_ONOFF
+         if ((status = atwake(device->mIface)) != ATCA_SUCCESS)
+         {
+             break;
+         }
+-
++#endif
+         // send the command
+         if ((status = atsend(device->mIface, (uint8_t*)packet, packet->txsize)) != ATCA_SUCCESS)
+         {
+@@ -365,7 +366,9 @@ ATCA_STATUS atca_execute_command(ATCAPacket* packet, ATCADevice device)
+     }
+     while (0);
+ 
++#ifndef ATCA_MANUAL_ONOFF
+     atidle(device->mIface);
++#endif
+     return status;
+ }
+ 
+diff --git a/lib/basic/atca_basic_read.c b/lib/basic/atca_basic_read.c
+index 472c7f78..d90b3c66 100644
+--- a/lib/basic/atca_basic_read.c
++++ b/lib/basic/atca_basic_read.c
+@@ -54,6 +54,11 @@
+  *
+  *  returns ATCA_SUCCESS on success, otherwise an error code.
+  */
++#ifdef ATCA_MANUAL_ONOFF
++extern void atecc_wake(void);
++extern void atecc_idle(void);
++#endif
++
+ ATCA_STATUS atcab_read_zone(uint8_t zone, uint16_t slot, uint8_t block, uint8_t offset, uint8_t *data, uint8_t len)
+ {
+     ATCAPacket packet;
+@@ -95,10 +100,16 @@ ATCA_STATUS atcab_read_zone(uint8_t zone, uint16_t slot, uint8_t block, uint8_t
+             break;
+         }
+ 
++#ifdef ATCA_MANUAL_ONOFF
++    atecc_wake();
++#endif
+         if ((status = atca_execute_command(&packet, _gDevice)) != ATCA_SUCCESS)
+         {
+             break;
+         }
++#ifdef ATCA_MANUAL_ONOFF
++    atecc_idle();
++#endif
+ 
+         memcpy(data, &packet.data[1], len);
+     }
+-- 
+2.17.1
+

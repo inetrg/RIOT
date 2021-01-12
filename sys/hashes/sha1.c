@@ -52,7 +52,6 @@ static void sha1_hash_block(sha1_context *s)
 {
     uint8_t i;
     uint32_t a, b, c, d, e, t;
-
     a = s->state[0];
     b = s->state[1];
     c = s->state[2];

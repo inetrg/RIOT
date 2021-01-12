@@ -11,6 +11,10 @@ config CPU_COMMON_KINETIS
     select HAS_PERIPH_PM
     select HAS_PERIPH_GPIO
     select HAS_PERIPH_GPIO_IRQ
+# TODO: Check which families provide the following
+    select HAS_HW_HASH_SHA1
+    select HAS_HW_HASH_SHA256
+    select HAS_PERIPH_CRYPTO_AES
 
 config CPU_FAM_EA
     bool
@@ -127,5 +131,8 @@ config CPU_MODEL
 
 config CPU
     default "kinetis" if CPU_COMMON_KINETIS
+
+rsource "mmcau_lib/Kconfig"
+rsource "periph/Kconfig"
 
 source "$(RIOTCPU)/cortexm_common/Kconfig"

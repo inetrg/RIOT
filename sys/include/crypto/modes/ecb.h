@@ -42,7 +42,7 @@ extern "C" {
  * @return           A negative error code if something went wrong
  *
  */
-int cipher_encrypt_ecb(cipher_t *cipher, uint8_t *input, size_t length,
+int cipher_encrypt_ecb(cipher_context_t *context, cipher_id_t cipher_id, uint8_t *input, size_t length,
                        uint8_t *output);
 
 
@@ -59,7 +59,7 @@ int cipher_encrypt_ecb(cipher_t *cipher, uint8_t *input, size_t length,
  * @return           Length of decrypted data on a successful decryption
  * @return           A negative error code if something went wrong
  */
-int cipher_decrypt_ecb(cipher_t *cipher, uint8_t *input, size_t length,
+int cipher_decrypt_ecb(cipher_context_t *context, cipher_id_t cipher_id, uint8_t *input, size_t length,
                        uint8_t *output);
 
 #ifdef __cplusplus

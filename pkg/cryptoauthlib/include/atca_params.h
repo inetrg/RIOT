@@ -53,7 +53,7 @@ extern "C" {
 #define ATCA_RX_RETRIES          (20)
 #endif
 #ifndef ATCA_DEVTYPE
-#define ATCA_DEVTYPE            (ATECC508A)
+#define ATCA_DEVTYPE            (ATECC608A)
 #endif
 
 #ifndef ATCA_PARAMS

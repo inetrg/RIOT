@@ -1098,7 +1098,7 @@ static void test_encrypt_op(const uint8_t *key, uint8_t key_len,
                             size_t output_expected_len,
                             uint8_t mac_length)
 {
-    cipher_t cipher;
+    cipher_context_t cipher;
     int len, err, cmp;
     size_t len_encoding = nonce_and_len_encoding_size - nonce_len;
 
@@ -1108,7 +1108,7 @@ static void test_encrypt_op(const uint8_t *key, uint8_t key_len,
     err = cipher_init(&cipher, CIPHER_AES_128, key, key_len);
     TEST_ASSERT_EQUAL_INT(1, err);
 
-    len = cipher_encrypt_ccm(&cipher, adata, adata_len,
+    len = cipher_encrypt_ccm(&cipher, CIPHER_AES_128, adata, adata_len,
                              mac_length, len_encoding,
                              nonce, nonce_len, plain, plain_len, data);
     TEST_ASSERT_MESSAGE(len > 0, "Encryption failed");
@@ -1126,7 +1126,7 @@ static void test_decrypt_op(const uint8_t *key, uint8_t key_len,
                             size_t output_expected_len,
                             uint8_t mac_length)
 {
-    cipher_t cipher;
+    cipher_context_t cipher;
     int len, err, cmp;
     size_t len_encoding = nonce_and_len_encoding_size - nonce_len;
 
@@ -1136,7 +1136,7 @@ static void test_decrypt_op(const uint8_t *key, uint8_t key_len,
     err = cipher_init(&cipher, CIPHER_AES_128, key, key_len);
     TEST_ASSERT_EQUAL_INT(1, err);
 
-    len = cipher_decrypt_ccm(&cipher, adata, adata_len,
+    len = cipher_decrypt_ccm(&cipher, CIPHER_AES_128, adata, adata_len,
                              mac_length, len_encoding,
                              nonce, nonce_len, encrypted, encrypted_len, data);
     TEST_ASSERT_MESSAGE(len >= 0, "Decryption failed");
@@ -1255,7 +1255,7 @@ static void test_crypto_modes_ccm_decrypt(void)
 }
 
 
-typedef int (*func_ccm_t)(cipher_t *, const uint8_t *, uint32_t,
+typedef int (*func_ccm_t)(cipher_context_t *, cipher_id_t, const uint8_t *, uint32_t,
                           uint8_t, uint8_t, const uint8_t *, size_t,
                           const uint8_t *, size_t, uint8_t *);
 
@@ -1264,7 +1264,7 @@ static int _test_ccm_len(func_ccm_t func, uint8_t len_encoding,
                          size_t adata_len)
 {
     int ret;
-    cipher_t cipher;
+    cipher_context_t cipher;
     uint8_t mac_length = 8;
     uint8_t nonce[15] = { 0 };
     uint8_t key[16] = { 0 };
@@ -1273,7 +1273,7 @@ static int _test_ccm_len(func_ccm_t func, uint8_t len_encoding,
 
     cipher_init(&cipher, CIPHER_AES_128, key, 16);
 
-    ret = func(&cipher, NULL, adata_len, mac_length, len_encoding,
+    ret = func(&cipher, CIPHER_AES_128, NULL, adata_len, mac_length, len_encoding,
                nonce, nonce_len, input, input_len, data);
     return ret;
 }

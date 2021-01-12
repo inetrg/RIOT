@@ -34,13 +34,13 @@ static inline int min(int a, int b)
     }
 }
 
-static int ccm_compute_cbc_mac(cipher_t *cipher, const uint8_t iv[16],
+static int ccm_compute_cbc_mac(cipher_context_t *context, cipher_id_t cipher_id, const uint8_t iv[16],
                         const uint8_t *input, size_t length, uint8_t *mac)
 {
     uint8_t block_size, mac_enc[16] = { 0 };
     uint32_t offset;
 
-    block_size = cipher_get_block_size(cipher);
+    block_size = cipher_get_block_size(cipher_id);
     memmove(mac, iv, 16);
     offset = 0;
 
@@ -58,7 +58,7 @@ static int ccm_compute_cbc_mac(cipher_t *cipher, const uint8_t iv[16],
             mac[i] ^= input[offset + i];
         }
 
-        if (cipher_encrypt(cipher, mac, mac_enc) != 1) {
+        if (cipher_encrypt(context, cipher_id, mac, mac_enc) != 1) {
             return CIPHER_ERR_ENC_FAILED;
         }
 
@@ -70,7 +70,7 @@ static int ccm_compute_cbc_mac(cipher_t *cipher, const uint8_t iv[16],
 }
 
 
-static int ccm_create_mac_iv(cipher_t *cipher, uint8_t auth_data_len, uint8_t M,
+static int ccm_create_mac_iv(cipher_context_t *context, cipher_id_t cipher_id, uint8_t auth_data_len, uint8_t M,
                       uint8_t L, const uint8_t *nonce, uint8_t nonce_len,
                       size_t plaintext_len, uint8_t X1[16])
 {
@@ -100,13 +100,13 @@ static int ccm_create_mac_iv(cipher_t *cipher, uint8_t auth_data_len, uint8_t M,
         return CIPHER_ERR_INVALID_LENGTH;
     }
 
-    if (cipher_encrypt(cipher, X1, X1) != 1) {
+    if (cipher_encrypt(context, cipher_id, X1, X1) != 1) {
         return CIPHER_ERR_ENC_FAILED;
     }
     return 0;
 }
 
-static int ccm_compute_adata_mac(cipher_t *cipher, const uint8_t *auth_data,
+static int ccm_compute_adata_mac(cipher_context_t *context, cipher_id_t cipher_id, const uint8_t *auth_data,
                           uint32_t auth_data_len, uint8_t X1[16])
 {
     if (auth_data_len > 0) {
@@ -139,7 +139,7 @@ static int ccm_compute_adata_mac(cipher_t *cipher, const uint8_t *auth_data,
         memcpy(auth_data_encoded + len_encoding, auth_data,
                auth_data_len_in_encoded);
         /* Calculate the MAC over the first block of AAD + heading length encoding */
-        len = ccm_compute_cbc_mac(cipher, X1, auth_data_encoded,
+        len = ccm_compute_cbc_mac(context, cipher_id, X1, auth_data_encoded,
                                   auth_data_len_in_encoded + len_encoding, X1);
 
         if (len < 0) {
@@ -148,7 +148,7 @@ static int ccm_compute_adata_mac(cipher_t *cipher, const uint8_t *auth_data,
 
         /* Calculate the MAC for the remainder of the AAD (if there is one) */
         if (auth_data_len_in_encoded < auth_data_len) {
-            len = ccm_compute_cbc_mac(cipher, X1,
+            len = ccm_compute_cbc_mac(context, cipher_id, X1,
                                       auth_data + auth_data_len_in_encoded,
                                       auth_data_len - auth_data_len_in_encoded,
                                       X1);
@@ -174,7 +174,7 @@ static inline int _fits_in_nbytes(size_t value, uint8_t num_bytes)
 }
 
 
-int cipher_encrypt_ccm(cipher_t *cipher,
+int cipher_encrypt_ccm(cipher_context_t *context, cipher_id_t cipher_id,
                        const uint8_t *auth_data, uint32_t auth_data_len,
                        uint8_t mac_length, uint8_t length_encoding,
                        const uint8_t *nonce, size_t nonce_len,
@@ -195,20 +195,20 @@ int cipher_encrypt_ccm(cipher_t *cipher,
     }
 
     /* Create B0, encrypt it (X1) and use it as mac_iv */
-    block_size = cipher_get_block_size(cipher);
+    block_size = cipher_get_block_size(cipher_id);
     assert(block_size == CCM_BLOCK_SIZE);
-    if (ccm_create_mac_iv(cipher, auth_data_len, mac_length, length_encoding,
+    if (ccm_create_mac_iv(context, cipher_id, auth_data_len, mac_length, length_encoding,
                           nonce, nonce_len, input_len, mac_iv) < 0) {
         return CCM_ERR_INVALID_DATA_LENGTH;
     }
 
     /* MAC calculation (T) with additional data and plaintext */
-    len = ccm_compute_adata_mac(cipher, auth_data, auth_data_len, mac_iv);
+    len = ccm_compute_adata_mac(context, cipher_id, auth_data, auth_data_len, mac_iv);
     if (len < 0) {
         return len;
     }
 
-    len = ccm_compute_cbc_mac(cipher, mac_iv, input, input_len, mac);
+    len = ccm_compute_cbc_mac(context, cipher_id, mac_iv, input, input_len, mac);
     if (len < 0) {
         return len;
     }
@@ -217,7 +217,7 @@ int cipher_encrypt_ccm(cipher_t *cipher,
     nonce_counter[0] = length_encoding - 1;
     memcpy(&nonce_counter[1], nonce,
            min(nonce_len, (size_t)15 - length_encoding));
-    len = cipher_encrypt_ctr(cipher, nonce_counter, block_size,
+    len = cipher_encrypt_ctr(context, cipher_id, nonce_counter, block_size,
                              zero_block, block_size, stream_block);
     if (len < 0) {
         return len;
@@ -225,7 +225,7 @@ int cipher_encrypt_ccm(cipher_t *cipher,
 
     /* Encrypt message in counter mode  */
     crypto_block_inc_ctr(nonce_counter, block_size - nonce_len);
-    len = cipher_encrypt_ctr(cipher, nonce_counter, nonce_len, input,
+    len = cipher_encrypt_ctr(context, cipher_id, nonce_counter, nonce_len, input,
                              input_len, output);
     if (len < 0) {
         return len;
@@ -240,7 +240,7 @@ int cipher_encrypt_ccm(cipher_t *cipher,
 }
 
 
-int cipher_decrypt_ccm(cipher_t *cipher,
+int cipher_decrypt_ccm(cipher_context_t *context, cipher_id_t cipher_id,
                        const uint8_t *auth_data, uint32_t auth_data_len,
                        uint8_t mac_length, uint8_t length_encoding,
                        const uint8_t *nonce, size_t nonce_len,
@@ -265,11 +265,11 @@ int cipher_decrypt_ccm(cipher_t *cipher,
 
     /* Compute first stream block */
     nonce_counter[0] = length_encoding - 1;
-    block_size = cipher_get_block_size(cipher);
+    block_size = cipher_get_block_size(cipher_id);
     assert(block_size == CCM_BLOCK_SIZE);
     memcpy(&nonce_counter[1], nonce, min(nonce_len,
                                          (size_t)15 - length_encoding));
-    len = cipher_encrypt_ctr(cipher, nonce_counter, block_size, zero_block,
+    len = cipher_encrypt_ctr(context, cipher_id, nonce_counter, block_size, zero_block,
                              block_size, stream_block);
     if (len < 0) {
         return len;
@@ -278,24 +278,24 @@ int cipher_decrypt_ccm(cipher_t *cipher,
     /* Decrypt message in counter mode */
     plain_len = input_len - mac_length;
     crypto_block_inc_ctr(nonce_counter, block_size - nonce_len);
-    len = cipher_encrypt_ctr(cipher, nonce_counter, nonce_len, input,
+    len = cipher_encrypt_ctr(context, cipher_id, nonce_counter, nonce_len, input,
                              plain_len, plain);
     if (len < 0) {
         return len;
     }
 
     /* Create B0, encrypt it (X1) and use it as mac_iv */
-    if (ccm_create_mac_iv(cipher, auth_data_len, mac_length, length_encoding,
+    if (ccm_create_mac_iv(context, cipher_id, auth_data_len, mac_length, length_encoding,
                           nonce, nonce_len, plain_len, mac_iv) < 0) {
         return CCM_ERR_INVALID_DATA_LENGTH;
     }
 
     /* MAC calculation (T) with additional data and plaintext */
-    len = ccm_compute_adata_mac(cipher, auth_data, auth_data_len, mac_iv);
+    len = ccm_compute_adata_mac(context, cipher_id, auth_data, auth_data_len, mac_iv);
     if (len < 0) {
         return len;
     }
-    len = ccm_compute_cbc_mac(cipher, mac_iv, plain, plain_len, mac);
+    len = ccm_compute_cbc_mac(context, cipher_id, mac_iv, plain, plain_len, mac);
     if (len < 0) {
         return len;
     }

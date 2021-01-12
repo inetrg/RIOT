@@ -11,5 +11,13 @@ config BOARD_COMMON_NRF52XXXDK
     select HAS_PERIPH_PWM
     select HAS_PERIPH_SPI
     select HAS_PERIPH_UART
+    select MOD_BOARDS_COMMON_NRF52XXDK
+
+config MOD_BOARDS_COMMON_NRF52XXDK
+    bool
+    depends on BOARD_COMMON_NRF52XXXDK
+    depends on TEST_KCONFIG
+    help
+        Common NRF52xxDK code.
 
 source "$(RIOTBOARD)/common/nrf52/Kconfig"

@@ -1,0 +1,22 @@
+# Copyright (c) 2020 HAW Hamburg
+#
+# This file is subject to the terms and conditions of the GNU Lesser
+# General Public License v2.1. See the file LICENSE in the top level
+# directory for more details.
+#
+
+config PACK_GECKO_SDK
+    bool "EFM32 Gecko families SDK"
+    depends on TEST_KCONFIG
+    select MOD_GECKO_SDK_EMLIB
+    select MOD_GECKO_SDK_EMLIB_EXTRA
+
+config MOD_GECKO_SDK_EMLIB
+    bool
+    depends on PACK_GECKO_SDK
+    depends on TEST_KCONFIG
+
+config MOD_GECKO_SDK_EMLIB_EXTRA
+    bool
+    depends on PACK_GECKO_SDK
+    depends on TEST_KCONFIG

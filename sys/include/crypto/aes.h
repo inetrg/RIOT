@@ -126,6 +126,148 @@ int aes_encrypt(const cipher_context_t *context, const uint8_t *plain_block,
 int aes_decrypt(const cipher_context_t *context, const uint8_t *cipher_block,
                 uint8_t *plain_block);
 
+/**
+ * @brief   encrypts a plain text with aes ctr mode and saves the cipher in output
+ *
+ * @param       context       the cipher_context_t-struct to use for this
+ *                            encryption
+ *
+ * @param       nonce_counter A nounce and a counter encoded in 16 octets. The counter
+ *                            will be modified in each block encryption.
+ * @param       nonce_len     Length of the nonce in octets. As nounce and counter
+ *                            have to fit in one aligned 16 octet block, maximum
+ *                            length of nonce is limited by input_len:
+ *                            16 - log_2(input_len)
+ *
+ * @param       input         a pointer to the plaintext
+ *
+ * @param       length        size_t of input length
+ *
+ * @param       output        a pointer to the place where the ciphertext will
+ *                            be stored
+ *
+ * @return  1 on success
+ * @return  A negative value if the cipher key cannot be expanded with the
+ *          AES key schedule
+ */
+int aes_encrypt_ctr(cipher_context_t *context, uint8_t nonce_counter[16],
+                       uint8_t nonce_len, const uint8_t *input, size_t length,
+                       uint8_t *output);
+
+/**
+ * @brief   decrypts a cipher with aes ctr mode and saves the plaintext in output
+ *
+ * @param       context       the cipher_context_t-struct to use for this
+ *                            encryption
+ *
+ * @param       nonce_counter A nounce and a counter encoded in 16 octets. The counter
+ *                            will be modified in each block encryption.
+ * @param       nonce_len     Length of the nonce in octets. As nounce and counter
+ *                            have to fit in one aligned 16 octet block, maximum
+ *                            length of nonce is limited by input_len:
+ *                            16 - log_2(input_len)
+ *
+ * @param       input         a pointer to the cipher
+ *
+ * @param       length        size_t of input length
+ *
+ * @param       output        a pointer to the place where the plaintext will
+ *                            be stored
+ *
+ * @return  1 on success
+ * @return  A negative value if the cipher key cannot be expanded with the
+ *          AES key schedule
+ */
+int aes_decrypt_ctr(cipher_context_t *context, uint8_t nonce_counter[16],
+                       uint8_t nonce_len, const uint8_t *input, size_t length,
+                       uint8_t *output);
+
+/**
+ * @brief   encrypts a plaintext with aes cbc mode and saves the cipher in output
+ *
+ * @param       context       the cipher_context_t-struct to use for this
+ *                            encryption
+ *
+ * @param       iv            16 octet initialization vector. Must never be used more
+ *                            than once for a given key.
+ *
+ * @param       input         a pointer to the plaintext
+ *
+ * @param       length        size_t of input length
+ *
+ * @param       output        a pointer to the place where the cipher will
+ *                            be stored
+ *
+ * @return  1 on success
+ * @return  A negative value if the cipher key cannot be expanded with the
+ *          AES key schedule
+ */
+int aes_encrypt_cbc(cipher_context_t *context, uint8_t iv[16],
+                       const uint8_t *input, size_t length, uint8_t *output);
+
+/**
+ * @brief   decrypts a cipher with aes cbc mode and saves the plaintext in output
+ *
+ * @param       context       the cipher_context_t-struct to use for this
+ *                            encryption
+ *
+ * @param       iv            16 octet initialization vector. Must never be used more
+ *                            than once for a given key.
+ *
+ * @param       input         a pointer to the cipher
+ *
+ * @param       length        size_t of input length
+ *
+ * @param       output        a pointer to the place where the plaintext will
+ *                            be stored
+ *
+ * @return  1 on success
+ * @return  A negative value if the cipher key cannot be expanded with the
+ *          AES key schedule
+ */
+int aes_decrypt_cbc(cipher_context_t *context, uint8_t iv[16],
+                       const uint8_t *input, size_t length, uint8_t *output);
+
+/**
+ * @brief   encrypts a plaintext with aes ecb mode and saves the cipher in output
+ *
+ * @param       context       the cipher_context_t-struct to use for this
+ *                            encryption
+ *
+ * @param       input         a pointer to the plaintext
+ *
+ * @param       length        size_t of input length
+ *
+ * @param       output        a pointer to the place where the cipher will
+ *                            be stored
+ *
+ * @return  1 on success
+ * @return  A negative value if the cipher key cannot be expanded with the
+ *          AES key schedule
+ */
+int aes_encrypt_ecb(cipher_context_t *context, const uint8_t *input,
+                       size_t length, uint8_t *output);
+
+/**
+ * @brief   decrypts a cipher with aes ecb mode and saves the plaintext in output
+ *
+ * @param       context       the cipher_context_t-struct to use for this
+ *                            encryption
+ *
+ * @param       input         a pointer to the cipher
+ *
+ * @param       length        size_t of input length
+ *
+ * @param       output        a pointer to the place where the plaintext will
+ *                            be stored
+ *
+ * @return  1 on success
+ * @return  A negative value if the cipher key cannot be expanded with the
+ *          AES key schedule
+ */
+int aes_decrypt_ecb(cipher_context_t *context, const uint8_t *input,
+                       size_t length, uint8_t *output);
+
 #ifdef __cplusplus
 }
 #endif

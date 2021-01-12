@@ -19,6 +19,18 @@ CFLAGS += -D$(call uppercase_and_underscore,$(CPU_MODEL))
 # include cortexm_common
 LINKER_SCRIPT = cortexm.ld
 
+ifneq (,$(filter periph_hash_sha1, $(USEMODULE)))
+  INCLUDES += -I$(RIOTCPU)/efm32/include/sha1_incl
+endif
+
+ifneq (,$(filter periph_hash_sha256, $(USEMODULE)))
+  INCLUDES += -I$(RIOTCPU)/efm32/include/sha256_incl
+endif
+
+ifneq (,$(filter crypto, $(USEMODULE)))
+  CFLAGS += -DHAVE_CRYPTO_INIT
+endif
+
 ROM_START_ADDR = $(EFM32_FLASH_START)
 ROM_LEN = $(EFM32_FLASH_SIZE)
 RAM_START_ADDR = $(EFM32_SRAM_START)

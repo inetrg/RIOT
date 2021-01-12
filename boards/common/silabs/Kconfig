@@ -8,3 +8,17 @@ config BOARD_COMMON_SILABS
     bool
     select HAS_ARDUINO
     select HAS_RIOTBOOT
+    select MOD_BOARDS_COMMON_SILABS
+
+config MOD_BOARDS_COMMON_SILABS
+    bool
+    depends on BOARD_COMMON_SILABS
+    depends on TEST_KCONFIG
+
+if BOARD_COMMON_SILABS
+
+rsource "drivers/aem/Kconfig"
+rsource "drivers/bc/Kconfig"
+rsource "drivers/pic/Kconfig"
+
+endif # BOARD_COMMON_SILABS

@@ -25,7 +25,8 @@
 #define OCB_MODE_DECRYPT 2
 
 struct ocb_state {
-    cipher_t *cipher;
+    cipher_context_t *context;
+    cipher_id_t cipher_id;
     uint8_t l_star[16];
     uint8_t l_zero[16];
     uint8_t l_dollar[16];
@@ -89,11 +90,11 @@ static void processBlock(ocb_state_t *state, size_t blockNumber,
     uint8_t cipher_output[16], cipher_input[16];
     xor_block(input, state->offset, cipher_input);
     if (mode == OCB_MODE_ENCRYPT) {
-        state->cipher->interface->encrypt(&(state->cipher->context),
+        state->cipher_id->encrypt((state->context),
                                           cipher_input, cipher_output);
     }
     else if (mode == OCB_MODE_DECRYPT) {
-        state->cipher->interface->decrypt(&(state->cipher->context),
+        state->cipher_id->decrypt((state->context),
                                           cipher_input, cipher_output);
     }
     xor_block(state->offset, cipher_output, output);
@@ -126,7 +127,7 @@ static void hash(ocb_state_t *state, uint8_t *data, size_t data_len,
         /* Sum_i = Sum_{i-1} xor ENCIPHER(K, A_i xor Offset_i) */
         uint8_t enciphered_block[16], cipher_input[16];
         xor_block(data, offset, cipher_input);
-        state->cipher->interface->encrypt(&(state->cipher->context),
+        state->cipher_id->encrypt((state->context),
                                           cipher_input, enciphered_block);
         xor_block(output, enciphered_block, output);
 
@@ -143,17 +144,18 @@ static void hash(ocb_state_t *state, uint8_t *data, size_t data_len,
         xor_block(cipher_input, offset, cipher_input);
         /* Sum = Sum_m xor ENCIPHER(K, CipherInput) */
         uint8_t enciphered_block[16];
-        state->cipher->interface->encrypt(&(state->cipher->context),
+        state->cipher_id->encrypt((state->context),
                                           cipher_input, enciphered_block);
         xor_block(output, enciphered_block, output);
     }
 }
 
-static void init_ocb(cipher_t *cipher, uint8_t tag_len, uint8_t *nonce,
+static void init_ocb(cipher_context_t *context, cipher_id_t cipher_id, uint8_t tag_len, uint8_t *nonce,
                      size_t nonce_len, ocb_state_t *state)
 {
 
-    state->cipher = cipher;
+    state->cipher_id = cipher_id;
+    state->context = context;
 
     /* Key-dependent variables
 
@@ -164,7 +166,7 @@ static void init_ocb(cipher_t *cipher, uint8_t tag_len, uint8_t *nonce,
      */
     uint8_t zero_block[16];
     memset(zero_block, 0, 16);
-    cipher->interface->encrypt(&(cipher->context), zero_block, state->l_star);
+    cipher_id->encrypt(context, zero_block, state->l_star);
     double_block(state->l_star, state->l_dollar);
     double_block(state->l_dollar, state->l_zero);
 
@@ -181,7 +183,7 @@ static void init_ocb(cipher_t *cipher, uint8_t tag_len, uint8_t *nonce,
     /* Ktop = ENCIPHER(K, Nonce[1..122] || zeros(6)) */
     nonce_padded[15] = nonce_padded[15] & 0xC0;
     uint8_t ktop[16];
-    cipher->interface->encrypt(&(cipher->context), nonce_padded, ktop);
+    cipher_id->encrypt(context, nonce_padded, ktop);
 
     /* Stretch = Ktop || (Ktop[1..64] xor Ktop[9..72]) */
     uint8_t stretch[24];
@@ -203,7 +205,7 @@ static void init_ocb(cipher_t *cipher, uint8_t tag_len, uint8_t *nonce,
     memset(state->checksum, 0, 16);
 }
 
-static int32_t run_ocb(cipher_t *cipher, uint8_t *auth_data,
+static int32_t run_ocb(cipher_context_t *context, cipher_id_t cipher_id, uint8_t *auth_data,
                        uint32_t auth_data_len,
                        uint8_t tag[16], uint8_t tag_len, uint8_t *nonce,
                        size_t nonce_len,
@@ -212,7 +214,7 @@ static int32_t run_ocb(cipher_t *cipher, uint8_t *auth_data,
 {
 
     /* OCB mode only works for ciphers of block length 16 */
-    if (cipher->interface->block_size != 16) {
+    if (cipher_id->block_size != 16) {
         return OCB_ERR_INVALID_BLOCK_LENGTH;
     }
 
@@ -227,7 +229,7 @@ static int32_t run_ocb(cipher_t *cipher, uint8_t *auth_data,
     }
 
     ocb_state_t state;
-    init_ocb(cipher, tag_len, nonce, nonce_len, &state);
+    init_ocb(context, cipher_id, tag_len, nonce, nonce_len, &state);
 
     /* Calculate the number of full blocks in data */
     size_t m = (input_len - (input_len % 16)) / 16;
@@ -248,7 +250,7 @@ static int32_t run_ocb(cipher_t *cipher, uint8_t *auth_data,
 
         /* Pad = ENCIPHER(K, Offset_*) */
         uint8_t pad[16];
-        cipher->interface->encrypt(&(cipher->context), state.offset, pad);
+        cipher_id->encrypt(context, state.offset, pad);
 
         /* Encrypt: C_* = P_* xor Pad[1..bitlen(P_*)] */
         /* Decrypt: P_* = C_* xor Pad[1..bitlen(C_*)] */
@@ -282,13 +284,13 @@ static int32_t run_ocb(cipher_t *cipher, uint8_t *auth_data,
     xor_block(state.checksum, state.offset, cipher_data);
     xor_block(cipher_data, state.l_dollar, cipher_data);
 
-    cipher->interface->encrypt(&(cipher->context), cipher_data, tag);
+    cipher_id->encrypt(context, cipher_data, tag);
     xor_block(tag, hash_value, tag);
 
     return output_pos;
 }
 
-int32_t cipher_encrypt_ocb(cipher_t *cipher, uint8_t *auth_data,
+int32_t cipher_encrypt_ocb(cipher_context_t *context, cipher_id_t cipher_id, uint8_t *auth_data,
                            size_t auth_data_len,
                            uint8_t tag_len, uint8_t *nonce, size_t nonce_len,
                            uint8_t *input, size_t input_len, uint8_t *output)
@@ -300,7 +302,7 @@ int32_t cipher_encrypt_ocb(cipher_t *cipher, uint8_t *auth_data,
         return OCB_ERR_INVALID_DATA_LENGTH;
     }
 
-    int cipher_text_length = run_ocb(cipher, auth_data, auth_data_len,
+    int cipher_text_length = run_ocb(context, cipher_id, auth_data, auth_data_len,
                                      tag, tag_len, nonce, nonce_len,
                                      input, input_len, output,
                                      OCB_MODE_ENCRYPT);
@@ -314,7 +316,7 @@ int32_t cipher_encrypt_ocb(cipher_t *cipher, uint8_t *auth_data,
     return (cipher_text_length + tag_len);
 }
 
-int32_t cipher_decrypt_ocb(cipher_t *cipher, uint8_t *auth_data,
+int32_t cipher_decrypt_ocb(cipher_context_t *context, cipher_id_t cipher_id, uint8_t *auth_data,
                            size_t auth_data_len,
                            uint8_t tag_len, uint8_t *nonce, size_t nonce_len,
                            uint8_t *input, size_t input_len, uint8_t *output)
@@ -325,7 +327,7 @@ int32_t cipher_decrypt_ocb(cipher_t *cipher, uint8_t *auth_data,
     }
 
     uint8_t tag[16];
-    int plain_text_length = run_ocb(cipher, auth_data, auth_data_len,
+    int plain_text_length = run_ocb(context, cipher_id, auth_data, auth_data_len,
                                     tag, tag_len, nonce, nonce_len,
                                     input, input_len - tag_len, output,
                                     OCB_MODE_DECRYPT);

@@ -37,6 +37,7 @@ static int cmd_fips(int argc, char **argv);
 static int cmd_seed(int argc, char **argv);
 static int cmd_source(int argc, char **argv);
 static int cmd_speed(int argc, char **argv);
+static int cmd_speed2(int argc, char **argv);
 
 /**
  * @brief   List of command for this application.
@@ -49,6 +50,7 @@ static const shell_command_t shell_commands[] = {
     { "seed", "set random seed", cmd_seed },
     { "source", "set randomness source", cmd_source },
     { "speed", "run speed test", cmd_speed },
+    { "speed2", "speed test w/ variable len param", cmd_speed2 },
     { NULL, NULL, NULL }
 };
 
@@ -253,6 +255,25 @@ static int cmd_speed(int argc, char **argv)
     else {
         printf("usage: %s [duration] [lower-bound upper-bound]\n", argv[0]);
     }
+
+    return 0;
+}
+
+static int cmd_speed2(int argc, char **argv)
+{
+    if (argc ==3) {
+        uint32_t duration = strtoul(argv[1], NULL, 0);
+        uint32_t num_bytes = strtoul(argv[2], NULL, 0);
+        if (num_bytes > 1024) {
+            puts("num bytes must be < 1024\n");
+            return 0;
+        }
+        test_speed2(duration, num_bytes);
+    }
+    else{
+        printf("usage: %s [duration] [num bytes (max 1024)]\n", argv[0]);
+    }
+
 
     return 0;
 }

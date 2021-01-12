@@ -115,6 +115,7 @@ void test_entropy(uint32_t samples);
  * @param[in] duration  Test duration (in seconds)
  */
 void test_speed(uint32_t duration);
+void test_speed2(uint32_t duration, uint32_t num_bytes);
 
 /**
  * @brief   Run the speed test for random numbers r with a <= r < b and a given duration.

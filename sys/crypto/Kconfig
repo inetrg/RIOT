@@ -1,0 +1,44 @@
+# Copyright (c) 2020 HAW Hamburg
+#
+# This file is subject to the terms and conditions of the GNU Lesser
+# General Public License v2.1. See the file LICENSE in the top level
+# directory for more details.
+#
+
+menu "Crypto"
+    depends on TEST_KCONFIG
+
+rsource "modes/Kconfig"
+
+menuconfig CRYPTO_AES
+    bool "AES"
+    select MOD_CRYPTO
+
+if CRYPTO_AES
+
+choice CRYPTO_AES_IMPLEMENTATION
+    bool "AES implementation"
+    default MOD_PERIPH_CRYPTO_AES
+
+config MOD_PERIPH_CRYPTO_AES
+    bool "Hardware accelerated"
+    depends on HAS_PERIPH_CRYPTO_AES
+
+config MOD_CRYPTO_AES
+    bool "Software"
+
+endchoice
+
+endif # CRYPTO_AES
+
+config MOD_CRYPTO
+    bool
+    help
+        Base crypto module.
+
+config HAVE_OWN_CIPHER_CONTEXT_T
+    bool
+    help
+        Select to override the definition of cipher_context_t.
+
+endmenu # Crypto

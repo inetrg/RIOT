@@ -8,6 +8,23 @@ INCLUDES += -I$(RIOTPKG)/cryptoauthlib/include
 
 DIRS += $(RIOTPKG)/cryptoauthlib/contrib
 
+ifneq (,$(filter cryptoauthlib_crypto, $(USEMODULE)))
+  DIRS += $(RIOTPKG)/cryptoauthlib/crypto
+  INCLUDES += -I$(RIOTPKG)/cryptoauthlib/crypto/include
+endif
+
+ifneq (,$(filter cryptoauthlib_hashes, $(USEMODULE)))
+  DIRS += $(RIOTPKG)/cryptoauthlib/hashes
+endif
+
+ifneq (,$(filter cryptoauthlib_hashes_sha1, $(USEMODULE)))
+  INCLUDES += -I$(RIOTPKG)/cryptoauthlib/hashes/include/sha1_incl
+endif
+
+ifneq (,$(filter cryptoauthlib_hashes_sha256, $(USEMODULE)))
+  INCLUDES += -I$(RIOTPKG)/cryptoauthlib/hashes/include/sha256_incl
+endif
+
 ifneq (,$(filter cryptoauthlib_test,$(USEMODULE)))
   INCLUDES += -I$(PKG_TESTINCLDIR)
   INCLUDES += -I$(PKG_TESTINCLDIR)/jwt

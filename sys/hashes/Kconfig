@@ -1,0 +1,79 @@
+# Copyright (c) 2020 HAW Hamburg
+#
+# This file is subject to the terms and conditions of the GNU Lesser
+# General Public License v2.1. See the file LICENSE in the top level
+# directory for more details.
+#
+menu "Hashes"
+    depends on TEST_KCONFIG
+
+menuconfig HASHES_SHA1
+    bool "SHA-1 hashing support"
+
+if HASHES_SHA1
+
+choice HASHES_SHA1_IMPLEMENTATION
+    bool "SHA-1 implementation"
+    default MOD_PERIPH_HASH_SHA1
+
+config MOD_PERIPH_HASH_SHA1
+    bool "Hardware accelerated"
+    depends on HAS_HW_HASH_SHA1
+
+config MOD_HASHES_SHA1
+    bool "Software implemented"
+    select MOD_HASHES
+    select MOD_HASHES_SHA2XX_COMMON
+
+endchoice
+
+endif # HASHES_SHA1
+
+menuconfig HASHES_SHA256
+    bool "SHA-256"
+
+if HASHES_SHA256
+
+choice HASHES_SHA256_IMPLEMENTATION
+    bool "SHA-256 implementation"
+    default MOD_PERIPH_HASH_SHA256
+
+config MOD_PERIPH_HASH_SHA256
+    bool "Hardware accelerated"
+    depends on HAS_HW_HASH_SHA256
+
+config MOD_HASHES_SHA256
+    bool "Software"
+    select MOD_HASHES
+    select MOD_HASHES_SHA2XX_COMMON
+
+endchoice
+
+endif # HASHES_SHA256
+
+config MOD_HASHES
+    bool
+    help
+        Base module for software implemented hashes.
+
+config MOD_HASHES_SHA2XX_COMMON
+    bool
+    help
+        Base module for sha2xx implementations.
+
+config HAVE_OWN_SHA1_CTX
+    bool
+    help
+        Select to override the definition of sha1_context.
+
+config HAVE_OWN_SHA256_CTX
+    bool
+    help
+        Select to override the definition of sha256_context.
+
+config HAVE_OWN_HMAC_CTX
+    bool
+    help
+        Select to override the definition of hmac_context_t.
+
+endmenu # Hashes

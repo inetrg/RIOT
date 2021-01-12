@@ -1,0 +1,91 @@
+# Copyright (c) 2020 HAW Hamburg
+#
+# This file is subject to the terms and conditions of the GNU Lesser
+# General Public License v2.1. See the file LICENSE in the top level
+# directory for more details.
+#
+
+menu "Crypto cipher modes"
+    depends on TEST_KCONFIG
+
+menuconfig CRYPTO_MODE_AES_CTR
+    bool "AES in Counter mode (CTR)"
+    depends on CRYPTO_AES
+    select MOD_CRYPTO_MODE
+
+choice CRYPTO_MODE_AES_CTR_IMPLEMENTATION
+    bool "AES CTR implementation"
+    default MOD_PERIPH_CRYPTO_AES_CTR
+    depends on CRYPTO_MODE_AES_CTR
+
+config MOD_CRYPTO_MODE_AES_CTR
+    bool "Software implementation"
+    select MOD_CRYPTO_MODE_CTR
+
+config MOD_PERIPH_CRYPTO_AES_CTR
+    bool "Hardware accelerated implementation"
+    depends on HAS_PERIPH_CRYPTO_AES_CTR
+
+endchoice
+
+menuconfig CRYPTO_MODE_AES_CBC
+    bool "AES in Cipher Block Chaining mode (CBC)"
+    depends on CRYPTO_AES
+    select MOD_CRYPTO_MODE
+
+choice CRYPTO_MODE_AES_CBC_IMPLEMENTATION
+    bool "AES CBC implementation"
+    default MOD_PERIPH_CRYPTO_AES_CBC
+    depends on CRYPTO_MODE_AES_CBC
+
+config MOD_CRYPTO_MODE_AES_CBC
+    bool "Software implementation"
+    select MOD_CRYPTO_MODE_CBC
+
+config MOD_PERIPH_CRYPTO_AES_CBC
+    bool "Hardware accelerated implementation"
+    depends on HAS_PERIPH_CRYPTO_AES_CBC
+
+endchoice
+
+menuconfig CRYPTO_MODE_AES_ECB
+    bool "AES in Electronic Codebook mode (ECB)"
+    depends on CRYPTO_AES
+    select MOD_CRYPTO_MODE
+
+choice CRYPTO_MODE_AES_ECB_IMPLEMENTATION
+    bool "AES ECB implementation"
+    default MOD_PERIPH_CRYPTO_AES_ECB
+    depends on CRYPTO_MODE_AES_ECB
+
+config MOD_CRYPTO_MODE_AES_ECB
+    bool "Software implementation"
+    select MOD_CRYPTO_MODE_ECB
+
+config MOD_PERIPH_CRYPTO_AES_ECB
+    bool "Hardware accelerated implementation"
+    depends on HAS_PERIPH_CRYPTO_AES_ECB
+
+endchoice
+
+config MOD_CRYPTO_MODE_ECB
+    bool
+    help
+        Software implementation of the Electronic Codebook crypto mode.
+
+config MOD_CRYPTO_MODE_CBC
+    bool
+    help
+        Software implementation of the Cipher Block Chaining crypto mode.
+
+config MOD_CRYPTO_MODE_CTR
+    bool
+    help
+        Software implementation of the Counter crypto mode.
+
+config MOD_CRYPTO_MODE
+    bool
+    help
+        Basic Crypto mode common module.
+
+endmenu # Cipher modes

@@ -1,0 +1,36 @@
+# Copyright (c) 2020 HAW Hamburg
+#
+# This file is subject to the terms and conditions of the GNU Lesser
+# General Public License v2.1. See the file LICENSE in the top level
+# directory for more details.
+#
+
+if CPU_COMMON_KINETIS && TEST_KCONFIG
+
+config MOD_PERIPH_ICS
+    bool "Kinetis Internal Clock Source controller (ICS)"
+    default y
+    depends on HAS_PERIPH_ICS
+
+config MOD_PERIPH_MCG
+    bool "Kinetis Multipurpose Clock Generator (MCG)"
+    default y
+    depends on HAS_PERIPH_MCG
+
+config MOD_PERIPH_WDOG
+    bool "Kinetis Watchdog peripheral support"
+    default y
+
+config MOD_PERIPH_CRYPTO_AES
+    depends on CPU_COMMON_KINETIS
+    select HAVE_OWN_CIPHER_CONTEXT_T
+
+config MOD_PERIPH_HASH_SHA1
+    depends on CPU_COMMON_KINETIS
+    select HAVE_OWN_SHA1_CTX
+
+config MOD_PERIPH_HASH_SHA256
+    depends on CPU_COMMON_KINETIS
+    select HAVE_OWN_SHA256_CTX
+
+endif # CPU_COMMON_KINETIS && TEST_KCONFIG

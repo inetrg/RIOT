@@ -21,3 +21,5 @@ FEATURES_PROVIDED += ssp
 ifeq ($(OS),Linux)
   FEATURES_PROVIDED += periph_spi
 endif
+
+KCONFIG_ADD_CONFIG += $(RIOTCPU)/native/cpu.config

@@ -31,6 +31,26 @@ ifneq (,$(filter crypto_%,$(USEMODULE)))
   USEMODULE += crypto
 endif
 
+ifneq (,$(filter crypto_mode_%,$(USEMODULE)))
+  USEMODULE += crypto_mode
+endif
+
+ifneq (,$(filter crypto_mode_aes_%,$(USEMODULE)))
+  USEMODULE += crypto_aes
+endif
+
+ifneq (,$(filter crypto_mode_aes_ecb,$(USEMODULE)))
+  USEMODULE += crypto_mode_ecb
+endif
+
+ifneq (,$(filter crypto_mode_aes_ctr,$(USEMODULE)))
+  USEMODULE += crypto_mode_ctr
+endif
+
+ifneq (,$(filter crypto_mode_aes_cbc,$(USEMODULE)))
+  USEMODULE += crypto_mode_cbc
+endif
+
 ifneq (,$(filter rtt_cmd,$(USEMODULE)))
   FEATURES_REQUIRED += periph_rtt
 endif

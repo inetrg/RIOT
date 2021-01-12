@@ -24,6 +24,13 @@
 
 #include <stdint.h>
 
+#include "kernel_defines.h"
+#if (IS_ACTIVE(MODULE_PERIPH_CRYPTO_AES) && !IS_ACTIVE(MODULE_GECKO_SDK) && !IS_ACTIVE(MODULE_CRYPTOAUTHLIB_CRYPTO))
+#include "aes_hwctx.h"
+#endif
+#if (IS_ACTIVE(MODULE_CRYPTOAUTHLIB_CRYPTO))
+#include "cryptoauthlib_crypto_hwctx.h"
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,7 +50,7 @@ extern "C" {
  */
 #if defined(MODULE_CRYPTO_3DES)
     #define CIPHER_MAX_CONTEXT_SIZE 24
-#elif defined(MODULE_CRYPTO_AES)
+#elif (IS_ACTIVE(MODULE_CRYPTO_AES) || IS_ACTIVE(MODULE_PERIPH_CRYPTO_AES) || IS_ACTIVE(MODULE_CRYPTOAUTHLIB_CRYPTO))
     #define CIPHER_MAX_CONTEXT_SIZE CIPHERS_MAX_KEY_SIZE
 #else
 /* 0 is not a possibility because 0-sized arrays are not allowed in ISO C */
@@ -61,13 +68,15 @@ extern "C" {
 /**  Returned by cipher_init upon successful initialization of a cipher. */
 #define CIPHER_INIT_SUCCESS            1
 
+//#if (!IS_ACTIVE(MODULE_PERIPH_CRYPTO_AES) || IS_ACTIVE(MODULE_GECKO_SDK)) || (!IS_ACTIVE(MODULE_CRYPTOAUTHLIB_CRYPTO))
+#if !IS_ACTIVE(CONFIG_HAVE_OWN_CIPHER_CONTEXT_T)
 /**
  * @brief   the context for cipher-operations
  */
 typedef struct {
     uint8_t context[CIPHER_MAX_CONTEXT_SIZE];  /**< buffer for cipher operations */
 } cipher_context_t;
-
+#endif /* CONFIG_HAVE_OWN_CIPHER_CONTEXT_T */
 
 /**
  * @brief   BlockCipher-Interface for the Cipher-Algorithms
@@ -124,7 +133,7 @@ typedef struct {
  * @return  The command may return CIPHER_ERR_INVALID_KEY_SIZE if the
  *          key size is not valid.
  */
-int cipher_init(cipher_t *cipher, cipher_id_t cipher_id, const uint8_t *key,
+int cipher_init(cipher_context_t *context, cipher_id_t cipher_id, const uint8_t *key,
                 uint8_t key_size);
 
 
@@ -141,7 +150,7 @@ int cipher_init(cipher_t *cipher, cipher_id_t cipher_id, const uint8_t *key,
  *                   cipher, which is always 1 in case of success
  * @return           A negative value for an error
  */
-int cipher_encrypt(const cipher_t *cipher, const uint8_t *input,
+int cipher_encrypt(const cipher_context_t *context, cipher_id_t cipher_id, const uint8_t *input,
                    uint8_t *output);
 
 
@@ -158,7 +167,7 @@ int cipher_encrypt(const cipher_t *cipher, const uint8_t *input,
  *                   cipher, which is always 1 in case of success
  * @return           A negative value for an error
  */
-int cipher_decrypt(const cipher_t *cipher, const uint8_t *input,
+int cipher_decrypt(const cipher_context_t *cipher,  cipher_id_t cipher_id, const uint8_t *input,
                    uint8_t *output);
 
 
@@ -170,7 +179,7 @@ int cipher_decrypt(const cipher_t *cipher, const uint8_t *input,
  *
  * @return           The cipher's block size (in bytes)
  */
-int cipher_get_block_size(const cipher_t *cipher);
+int cipher_get_block_size(cipher_id_t cipher_id);
 
 
 #ifdef __cplusplus

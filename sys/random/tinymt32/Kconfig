@@ -1,0 +1,12 @@
+# Copyright (c) 2020 HAW Hamburg
+#
+# This file is subject to the terms and conditions of the GNU Lesser
+# General Public License v2.1. See the file LICENSE in the top level
+# directory for more details.
+#
+
+config MOD_TINYMT32
+    bool "Tiny-MT 32 pseudo-random number generator support"
+    help
+        This is the basic support for Tiny-MT 32. It can also be used through
+        the PRNG API, by selecting MOD_PRNG.

@@ -140,7 +140,7 @@ extern "C" {
  * @{
  */
 #ifndef I2C_NUMOF
-#define I2C_BUS_SPEED           I2C_SPEED_FAST
+#define I2C_BUS_SPEED           I2C_SPEED_NORMAL
 #define I2C_NUMOF               (1U)
 #endif /* I2C_NUMOF */
 /** @} */

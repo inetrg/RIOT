@@ -19,34 +19,34 @@
 #include "crypto/ciphers.h"
 
 
-int cipher_init(cipher_t *cipher, cipher_id_t cipher_id, const uint8_t *key,
+int cipher_init(cipher_context_t *context, cipher_id_t cipher_id, const uint8_t *key,
                 uint8_t key_size)
 {
     if (key_size > cipher_id->max_key_size) {
         return CIPHER_ERR_INVALID_KEY_SIZE;
     }
 
-    cipher->interface = cipher_id;
-    return cipher->interface->init(&cipher->context, key, key_size);
+    // cipher->interface = cipher_id;
+    return cipher_id->init(context, key, key_size);
 
 }
 
 
-int cipher_encrypt(const cipher_t *cipher, const uint8_t *input,
+int cipher_encrypt(const cipher_context_t *context, cipher_id_t cipher_id, const uint8_t *input,
                    uint8_t *output)
 {
-    return cipher->interface->encrypt(&cipher->context, input, output);
+    return cipher_id->encrypt(context, input, output);
 }
 
 
-int cipher_decrypt(const cipher_t *cipher, const uint8_t *input,
+int cipher_decrypt(const cipher_context_t *context,  cipher_id_t cipher_id, const uint8_t *input,
                    uint8_t *output)
 {
-    return cipher->interface->decrypt(&cipher->context, input, output);
+    return cipher_id->decrypt(context, input, output);
 }
 
 
-int cipher_get_block_size(const cipher_t *cipher)
+int cipher_get_block_size(cipher_id_t cipher_id)
 {
-    return cipher->interface->block_size;
+    return cipher_id->block_size;
 }

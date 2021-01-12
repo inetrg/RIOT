@@ -1,0 +1,85 @@
+# Copyright (c) 2020 HAW Hamburg
+#
+# This file is subject to the terms and conditions of the GNU Lesser
+# General Public License v2.1. See the file LICENSE in the top level
+# directory for more details.
+#
+
+menu "Pseudo-Random Number Generation"
+    depends on TEST_KCONFIG
+
+menuconfig MOD_RANDOM
+    bool "Pseudo-Random Number Generator API [PRNG]"
+    select MOD_PRNG
+    select MOD_LUID
+    help
+        The PRNG frontend is implemented by multiple backends. Check the
+        documentation for more information about each of them.
+
+if MOD_RANDOM
+
+choice RANDOM_IMPLEMENTATION
+    bool "PRNG Implementation"
+    default MOD_PRNG_HWRNG if HAS_PERIPH_HWRNG
+    default MOD_PRNG_TINYM32
+
+config MOD_PRNG_FORTUNA
+    bool "Fortuna"
+    select MOD_FORTUNA
+    select HASHES_SHA256
+    depends on CRYPTO_AES
+    depends on MOD_XTIMER
+
+config MOD_PRNG_HWRNG
+    bool "Hardware RNG"
+    depends on HAS_PERIPH_HWRNG
+    select MOD_PERIPH_HWRNG
+
+config MOD_PRNG_MARSENNE
+    bool "Marsenne"
+
+config MOD_PRNG_MINISTD
+    bool "Mini STD"
+
+config MOD_PRNG_MUSL_LCG
+    bool "MUSL LCG"
+
+config MOD_PRNG_SHA1PRNG
+    bool "SHA-1"
+    select MOD_PRNG_SHAXPRNG
+    select HASHES_SHA1
+
+config MOD_PRNG_SHA256PRNG
+    bool "SHA-256"
+    select MOD_PRNG_SHAXPRNG
+    select HASHES_SHA256
+
+config MOD_PRNG_TINYM32
+    bool "Tiny-MT 32"
+    select MOD_TINYMT32
+
+config MOD_PRNG_XORSHIFT
+    bool "XOR Shift"
+
+endchoice
+
+config MOD_AUTO_INIT_RANDOM
+    bool "Auto-initialize the random system"
+    default y
+
+config MOD_PRNG_SHAXPRNG
+    bool
+    help
+        Unified implementation for SHA-256 and SHA-1 PRNG.
+
+config MOD_PRNG
+    bool
+    help
+        Basic Pseudo-random number generation module.
+
+endif # MOD_RANDOM
+
+rsource "fortuna/Kconfig"
+rsource "tinymt32/Kconfig"
+
+endmenu

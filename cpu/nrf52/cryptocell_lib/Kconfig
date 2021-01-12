@@ -1,0 +1,12 @@
+# Copyright (c) 2020 HAW Hamburg
+#
+# This file is subject to the terms and conditions of the GNU Lesser
+# General Public License v2.1. See the file LICENSE in the top level
+# directory for more details.
+#
+
+config MOD_LIB_CRYPTOCELL
+    bool
+    default y if MOD_PERIPH_HASH_SHA1 || MOD_PERIPH_HASH_SHA256 || MOD_PERIPH_CRYPTO_AES
+    depends on CPU_FAM_NRF52
+    depends on TEST_KCONFIG

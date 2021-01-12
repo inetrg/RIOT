@@ -52,6 +52,10 @@
 #include <stddef.h>
 
 #include "hashes/sha2xx_common.h"
+#include "kernel_defines.h"
+#if IS_ACTIVE(CONFIG_HAVE_OWN_SHA256_CTX) || IS_ACTIVE(CONFIG_HAVE_OWN_HMAC_CTX)
+#include "sha256_hwctx.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,11 +71,14 @@ extern "C" {
  */
 #define SHA256_INTERNAL_BLOCK_SIZE (64)
 
+#if !IS_ACTIVE(CONFIG_HAVE_OWN_SHA256_CTX)
 /**
  * @brief Context for cipher operations based on sha256
  */
 typedef sha2xx_context_t sha256_context_t;
+#endif /* !CONFIG_HAVE_OWN_SHA256_CTX */
 
+#if !IS_ACTIVE(CONFIG_HAVE_OWN_HMAC_CTX)
 /**
  * @brief Context for HMAC operations based on sha256
  */
@@ -81,6 +88,7 @@ typedef struct {
     /** Context for outer hash calculation */
     sha256_context_t c_out;
 } hmac_context_t;
+#endif /* CONFIG_HAVE_OWN_HMAC_CTX */
 
 /**
  * @brief sha256-chain indexed element
@@ -106,10 +114,14 @@ void sha256_init(sha256_context_t *ctx);
  * @param[in] data Input data
  * @param[in] len  Length of @p data
  */
+#if IS_ACTIVE(MODULE_HASHES_SHA256)
 static inline void sha256_update(sha256_context_t *ctx, const void *data, size_t len)
 {
     sha2xx_update(ctx, data, len);
 }
+#else
+void sha256_update(sha256_context_t *ctx, const void *data, size_t len);
+#endif /* MODULE_HASHES_SHA256 */
 
 /**
  * @brief SHA-256 finalization.  Pads the input data, exports the hash value,
@@ -118,10 +130,14 @@ static inline void sha256_update(sha256_context_t *ctx, const void *data, size_t
  * @param ctx    sha256_context_t handle to use
  * @param digest resulting digest, this is the hash of all the bytes
  */
+#if IS_ACTIVE(MODULE_HASHES_SHA256)
 static inline void sha256_final(sha256_context_t *ctx, void *digest)
 {
     sha2xx_final(ctx, digest, SHA256_DIGEST_LENGTH);
 }
+#else
+void sha256_final(sha256_context_t *ctx, void *digest);
+#endif /* MODULE_HASHES_SHA256 */
 
 /**
  * @brief A wrapper function to simplify the generation of a hash, this is

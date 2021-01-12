@@ -21,18 +21,18 @@
 #include "crypto/helper.h"
 #include "crypto/modes/ctr.h"
 
-int cipher_encrypt_ctr(cipher_t *cipher, uint8_t nonce_counter[16],
+int cipher_encrypt_ctr(cipher_context_t *context, cipher_id_t cipher_id, uint8_t nonce_counter[16],
                        uint8_t nonce_len, const uint8_t *input, size_t length,
                        uint8_t *output)
 {
     size_t offset = 0;
     uint8_t stream_block[16] = { 0 }, block_size;
 
-    block_size = cipher_get_block_size(cipher);
+    block_size = cipher_get_block_size(cipher_id);
     do {
         uint8_t block_size_input;
 
-        if (cipher_encrypt(cipher, nonce_counter, stream_block) != 1) {
+        if (cipher_encrypt(context, cipher_id, nonce_counter, stream_block) != 1) {
             return CIPHER_ERR_ENC_FAILED;
         }
 
@@ -49,10 +49,10 @@ int cipher_encrypt_ctr(cipher_t *cipher, uint8_t nonce_counter[16],
     return offset;
 }
 
-int cipher_decrypt_ctr(cipher_t *cipher, uint8_t nonce_counter[16],
+int cipher_decrypt_ctr(cipher_context_t *context, cipher_id_t cipher_id, uint8_t nonce_counter[16],
                        uint8_t nonce_len, const uint8_t *input, size_t length,
                        uint8_t *output)
 {
-    return cipher_encrypt_ctr(cipher, nonce_counter, nonce_len, input,
+    return cipher_encrypt_ctr(context, cipher_id, nonce_counter, nonce_len, input,
                               length, output);
 }
